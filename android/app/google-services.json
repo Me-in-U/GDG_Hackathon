@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "143037380807",
+    "project_id": "gdghackathon-d3485",
+    "storage_bucket": "gdghackathon-d3485.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:143037380807:android:d622731e54c35ece6226e2",
+        "android_client_info": {
+          "package_name": "com.hackathon.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsvLWUauHb0MhTWttyjOurg63cpdrbdfU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
