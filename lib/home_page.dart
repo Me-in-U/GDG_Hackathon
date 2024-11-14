@@ -212,7 +212,7 @@ class HomePage extends StatelessWidget {
           children: [
             FutureBuilder<String>(
               // Firestore에서 Base64로 저장된 이미지를 가져오는 함수
-              future: GetImage.getBase64StringFromFirestore(),  // 이 함수에서 Base64 문자열을 가져온다
+              future: GetImage.getBase64StringFromFirestore('강변 산책로'),  // 이 함수에서 Base64 문자열을 가져온다
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Container(
