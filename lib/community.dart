@@ -1,12 +1,42 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart'; // For location services
 import 'detail_page.dart';
 
-class Community extends StatelessWidget {
+class Community extends StatefulWidget {
   final Function(String routeName) onRouteSelected;
 
   const Community({Key? key, required this.onRouteSelected}) : super(key: key);
+
+  @override
+  _CommunityState createState() => _CommunityState();
+}
+
+class _CommunityState extends State<Community> {
+  Position? _userPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserLocation();
+  }
+
+  Future<void> _fetchUserLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      setState(() {
+        _userPosition = position;
+      });
+    } catch (e) {
+      // Handle location permission or fetching error
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('위치를 가져오는 데 실패했습니다.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +49,7 @@ class Community extends StatelessWidget {
           style: TextStyle(color: Colors.black),
         ),
         elevation: 0,
-        automaticallyImplyLeading: false, // Remove back button
+        automaticallyImplyLeading: false,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('routes').snapshots(),
@@ -32,6 +62,35 @@ class Community extends StatelessWidget {
           }
 
           final routes = snapshot.data!.docs;
+
+          if (_userPosition != null) {
+            // Sort routes by proximity to the user
+            routes.sort((a, b) {
+              final aPoints = a['points'] as List<dynamic>? ?? [];
+              final bPoints = b['points'] as List<dynamic>? ?? [];
+
+              if (aPoints.isEmpty || bPoints.isEmpty) return 0;
+
+              final aFirst = aPoints.first;
+              final bFirst = bPoints.first;
+
+              final aDistance = Geolocator.distanceBetween(
+                _userPosition!.latitude,
+                _userPosition!.longitude,
+                aFirst['lat'],
+                aFirst['lng'],
+              );
+
+              final bDistance = Geolocator.distanceBetween(
+                _userPosition!.latitude,
+                _userPosition!.longitude,
+                bFirst['lat'],
+                bFirst['lng'],
+              );
+
+              return aDistance.compareTo(bDistance);
+            });
+          }
 
           return ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -75,18 +134,15 @@ class Community extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Stack(
           children: [
-            // Main image or placeholder
             Positioned.fill(
-              top: -20, // Move image slightly upwards
+              top: -20,
               child: imageWidget ?? Container(color: Colors.grey[300]),
             ),
-            // Semi-transparent black overlay for contrast at the top
             Positioned.fill(
               child: Container(
                 color: Colors.black.withOpacity(0.0),
               ),
             ),
-            // Solid white bottom overlay for button and title
             Positioned(
               bottom: 0,
               left: 0,
@@ -119,12 +175,11 @@ class Community extends StatelessWidget {
                         );
 
                         if (selectedRoute != null) {
-                          // Notify the parent widget of the selected route
-                          onRouteSelected(selectedRoute);
+                          widget.onRouteSelected(selectedRoute);
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepOrange, // Light orange background
+                        backgroundColor: Colors.deepOrange,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
