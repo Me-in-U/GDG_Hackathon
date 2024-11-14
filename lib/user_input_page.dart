@@ -19,7 +19,7 @@ class _UserInputPageState extends State<UserInputPage> {
     // Firestore에서 사용자 데이터 확인 및 생성
     final docSnapshot = await userDoc.get();
     if (!docSnapshot.exists) {
-      await userDoc.set({"counter": 0}); // 새 사용자 생성
+      await userDoc.set({"totalDistance": 0.0}); // 새 사용자 생성
     }
 
     // 페이지 이동
