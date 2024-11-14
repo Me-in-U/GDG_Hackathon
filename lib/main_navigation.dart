@@ -4,6 +4,10 @@ import 'counter_page.dart';
 import 'map_page.dart';
 import 'profile_page.dart';
 import 'mapsetting.dart';
+import 'home_page.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
+
 
 class MainNavigation extends StatefulWidget {
   final String username;
@@ -24,7 +28,7 @@ class _MainNavigationState extends State<MainNavigation> {
   void initState() {
     super.initState();
     _pages = [
-      CounterPage(username: widget.username),
+      HomePage(username: widget.username),
       MapPage(key: _mapPageKey, username: widget.username), // GlobalKey 전달
       const ProfilePage(),
       MapSettingPage(
@@ -65,16 +69,30 @@ class _MainNavigationState extends State<MainNavigation> {
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.countertops),
-            label: 'Counter',
+            icon: FaIcon(
+              FontAwesomeIcons.user,
+              size: 23, // 원하는 크기로 설정
+              color: Colors.black, // 원하는 색상으로 설정
+            ),
+            label: 'Home',
+
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.map),
+            icon: FaIcon(
+              FontAwesomeIcons.map,
+              size: 23, // 원하는 크기로 설정
+              color: Colors.black, // 원하는 색상으로 설정
+            ),
             label: 'Map',
+
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+            icon: FaIcon(
+              FontAwesomeIcons.trophy,
+              size: 23, // 원하는 크기로 설정
+              color: Colors.amber, // 원하는 색상으로 설정
+            ),
+            label: 'Ranking',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
@@ -83,7 +101,8 @@ class _MainNavigationState extends State<MainNavigation> {
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.deepPurple,
-        unselectedItemColor: Colors.grey,
+
+        unselectedItemColor: Colors.black,
         onTap: _onItemTapped,
       ),
     );
