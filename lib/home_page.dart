@@ -194,13 +194,22 @@ class HomePage extends StatelessWidget {
           .get(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Text('오류 발생: ${snapshot.error}');
-        } else if (!snapshot.hasData || snapshot.data!['history'] == null) {
-          return Text('기록이 없습니다.');
+          return Center(
+            child: Text('오류 발생: ${snapshot.error}'),
+          );
+        } else if (!snapshot.hasData) {
+          return const Center(child: Text('기록이 없습니다.'));
         } else {
-          List<dynamic> historyList = snapshot.data!['history']; // 배열 가져오기
+          // 사용자 문서를 가져왔지만 history 필드가 없는 경우
+          var data = snapshot.data!.data() as Map<String, dynamic>?;
+
+          if (data == null || !data.containsKey('history') || data['history'] == null) {
+            return const Center(child: Text('기록이 없습니다.'));
+          }
+
+          List<dynamic> historyList = data['history'];
 
           return Center(
             child: Container(
@@ -217,14 +226,14 @@ class HomePage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Text(
                       '기록',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                   ListView.separated(
                     shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
+                    physics: const NeverScrollableScrollPhysics(),
                     itemCount: historyList.length,
-                    separatorBuilder: (context, index) => Divider(),
+                    separatorBuilder: (context, index) => const Divider(),
                     itemBuilder: (context, index) {
                       var item = historyList[index];
                       return _buildHistoryItem(
@@ -244,6 +253,7 @@ class HomePage extends StatelessWidget {
       },
     );
   }
+
 
 
   Widget _buildHistoryItem(String distance, String routeName, String calories, String date, BuildContext context) {
