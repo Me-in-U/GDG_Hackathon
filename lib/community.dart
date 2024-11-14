@@ -3,23 +3,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'detail_page.dart';
 
-void main() {
-  runApp(MaterialApp(
-    home: Community(),
-    debugShowCheckedModeBanner: false, // Disable the debug banner
-  ));
-}
-
 class Community extends StatelessWidget {
-  const Community({Key? key}) : super(key: key);
+  final Function(String routeName) onRouteSelected;
+
+  const Community({Key? key, required this.onRouteSelected}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text(
+        title: const Text(
           '경로 커뮤니티',
           style: TextStyle(color: Colors.black),
         ),
@@ -39,7 +34,7 @@ class Community extends StatelessWidget {
           final routes = snapshot.data!.docs;
 
           return ListView.builder(
-            padding: EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             itemCount: routes.length,
             itemBuilder: (context, index) {
               final route = routes[index];
@@ -99,26 +94,34 @@ class Community extends StatelessWidget {
               height: 60,
               child: Container(
                 color: Colors.white,
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
                     Text(
                       title,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.black,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
+                      onPressed: () async {
+                        final selectedRoute = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => DetailPage(title: title, description: "Description of $title"),
+                            builder: (context) => DetailPage(
+                              title: title,
+                              description: "Description of $title",
+                            ),
                           ),
                         );
+
+                        if (selectedRoute != null) {
+                          // Notify the parent widget of the selected route
+                          onRouteSelected(selectedRoute);
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.deepOrange, // Light orange background
@@ -129,7 +132,7 @@ class Community extends StatelessWidget {
                       ),
                       child: Text(
                         buttonText,
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],

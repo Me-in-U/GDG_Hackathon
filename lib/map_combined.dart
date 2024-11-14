@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:gdg_hackathon/routepainter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:gdg_hackathon/routepainter.dart';
 import 'dart:math';
 
 class MapCombined extends StatefulWidget {
@@ -17,10 +17,10 @@ class MapCombined extends StatefulWidget {
   const MapCombined({super.key, required this.username});
 
   @override
-  State<MapCombined> createState() => _MapCombinedState();
+  State<MapCombined> createState() => MapCombinedState();
 }
 
-class _MapCombinedState extends State<MapCombined> {
+class MapCombinedState extends State<MapCombined> {
   late GoogleMapController mapController;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? _currentRouteName; // 선택된 루트 이름 저장
@@ -72,22 +72,18 @@ class _MapCombinedState extends State<MapCombined> {
     );
   }
 
-  // **1. Draw Route 기능**
-  // Add a Polyline for the drawn route
   void _addPoint(LatLng point) {
     if (_isDrawing) {
       setState(() {
-        _drawnPoints.add(point); // Add point to the list
+        _drawnPoints.add(point);
 
-        // Update the drawn route polyline
         _drawnRoute = Polyline(
           polylineId: const PolylineId('drawnRoute'),
           points: _drawnPoints,
-          color: Colors.red, // Set color for the drawn route
-          width: 5, // Set line width
+          color: Colors.red,
+          width: 5,
         );
 
-        // Add marker at the start of the route
         if (_drawnPoints.length == 1) {
           _markers.add(Marker(
             markerId: const MarkerId('startMarker'),
@@ -124,30 +120,25 @@ class _MapCombinedState extends State<MapCombined> {
       return;
     }
 
-    final routeData = _drawnPoints
-        .map((point) => {"lat": point.latitude, "lng": point.longitude})
-        .toList();
+    final routeData = _drawnPoints.map((point) => {"lat": point.latitude, "lng": point.longitude}).toList();
 
-    final boundary = GlobalKey();  // RepaintBoundary의 key
+    final boundary = GlobalKey();
 
-    // RepaintBoundary를 사용하여 경로를 그린 화면을 캡처
     final boundaryWidget = RepaintBoundary(
       key: boundary,
       child: CustomPaint(
-        size: Size(double.infinity, 400),
+        size: const Size(double.infinity, 400),
         painter: RoutePainter(routeData),
       ),
     );
 
-    // 로딩 중인 아이콘과 함께 표시
     final loadingWidget = Stack(
       children: [
-        Center(child: boundaryWidget),  // 캡처할 위젯
-        Center(child: CircularProgressIndicator()),  // 로딩 중 아이콘
+        Center(child: boundaryWidget),
+        const Center(child: CircularProgressIndicator()),
       ],
     );
 
-    // 화면에 위젯 띄우기 (사이즈 조정 후 로딩 아이콘 추가)
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -155,44 +146,45 @@ class _MapCombinedState extends State<MapCombined> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.0),
           ),
-          child: Container(
-            width: 100,  // 너비 설정
-            height: 100, // 높이 설정
-            child: loadingWidget, // 로딩 화면을 작은 박스 안에 배치
+          child: SizedBox(
+            width: 100,
+            height: 100,
+            child: loadingWidget,
           ),
         );
       },
     );
 
-    // 일정 시간 뒤 자동으로 닫기
-    await Future.delayed(Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    final RenderRepaintBoundary renderBoundary = boundary.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    final RenderRepaintBoundary renderBoundary =
+    boundary.currentContext!.findRenderObject() as RenderRepaintBoundary;
     final image = await renderBoundary.toImage(pixelRatio: 3.0);
 
     final byteData = await image.toByteData(format: ImageByteFormat.png);
     final buffer = byteData!.buffer.asUint8List();
 
-    // 다이얼로그 닫기
     Navigator.of(context).pop();
 
-    await _firestore.collection("routes").doc(routeName).set({"points": routeData, "image":base64Encode(buffer)});
+    await _firestore.collection("routes").doc(routeName).set({
+      "points": routeData,
+      "image": base64Encode(buffer),
+    });
     Fluttertoast.showToast(
       msg: 'Route "$routeName" saved successfully!',
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
     );
     setState(() {
-      _isDrawing = false; // 드로잉 종료
+      _isDrawing = false;
       _drawnPoints.clear();
-      _drawnRoute = null; // Clear the polyline from the map
+      _drawnRoute = null;
       _markers.clear();
       _routePoints.clear();
     });
   }
 
-  // **2. Load Route 기능**
-  Future<void> _loadRoute(String routeName) async {
+  Future<void> loadRoute(String routeName) async {
     final routeDoc = await FirebaseFirestore.instance.collection("routes").doc(routeName).get();
 
     if (routeDoc.exists) {
@@ -200,13 +192,12 @@ class _MapCombinedState extends State<MapCombined> {
       final List<LatLng> routePoints = points.map((e) => LatLng(e['lat'], e['lng'])).toList();
 
       setState(() {
-        _currentRouteName = routeName; // 선택한 루트 이름 저장
+        _currentRouteName = routeName;
         _routePoints = routePoints;
-        _routeLoaded = true; // Route loaded
+        _routeLoaded = true;
         _createRouteSegments();
-        _calculateRouteLength(); // 전체 경로 길이 계산
+        _calculateRouteLength();
         _moveToRouteStart();
-        // Add start and end markers
         _markers
           ..clear()
           ..add(Marker(
@@ -230,29 +221,28 @@ class _MapCombinedState extends State<MapCombined> {
       );
     }
   }
+
   void _moveToRouteStart() {
     if (_routePoints.isNotEmpty) {
-      // Move the camera to the first point of the route
       mapController.animateCamera(
         CameraUpdate.newCameraPosition(
           CameraPosition(
-            target: _routePoints.first, // First point of the route
-            zoom: 15.0, // Zoom level
+            target: _routePoints.first,
+            zoom: 15.0,
           ),
         ),
       );
     }
   }
 
-
   void _createRouteSegments() {
-    _routeSegments.clear(); // 기존 세그먼트 초기화
+    _routeSegments.clear();
 
     for (int i = 0; i < _routePoints.length - 1; i++) {
       List<LatLng> interpolatedPoints = _interpolatePoints(
         _routePoints[i],
         _routePoints[i + 1],
-        10.0, // 10-meter segments
+        10.0,
       );
 
       for (int j = 0; j < interpolatedPoints.length - 1; j++) {
@@ -265,7 +255,8 @@ class _MapCombinedState extends State<MapCombined> {
           ),
         );
       }
-    }setState(() {}); // 세그먼트 갱신
+    }
+    setState(() {});
   }
 
   void _calculateRouteLength() {
@@ -278,14 +269,16 @@ class _MapCombinedState extends State<MapCombined> {
         _routePoints[i + 1].longitude,
       );
     }
-    _routeLength /= 1000; // Convert to kilometers
+    _routeLength /= 1000;
   }
 
   List<LatLng> _interpolatePoints(LatLng start, LatLng end, double stepDistance) {
     List<LatLng> points = [start];
     double totalDistance = Geolocator.distanceBetween(
-      start.latitude, start.longitude,
-      end.latitude, end.longitude,
+      start.latitude,
+      start.longitude,
+      end.latitude,
+      end.longitude,
     );
 
     if (totalDistance <= stepDistance) {
@@ -305,7 +298,6 @@ class _MapCombinedState extends State<MapCombined> {
     return points;
   }
 
-  // **3. 거리 추적 업데이트**
   void _startTimedLocationUpdates() {
     _timer = Timer.periodic(const Duration(milliseconds: 1000), (timer) async {
       Position position = await Geolocator.getCurrentPosition(
@@ -319,7 +311,6 @@ class _MapCombinedState extends State<MapCombined> {
   void _updateRouteProgress(LatLng currentLocation) {
     if (_routePoints.isEmpty) return;
 
-    // 시작 지점에 도달 여부 확인
     if (!_started) {
       double distanceToStart = Geolocator.distanceBetween(
         currentLocation.latitude,
@@ -328,14 +319,14 @@ class _MapCombinedState extends State<MapCombined> {
         _routePoints.first.longitude,
       );
 
-      if (distanceToStart <= 20.0) { // 시작 반경 20m
+      if (distanceToStart <= 20.0) {
         _started = true;
-        ScaffoldMessenger.of(context).clearSnackBars(); // 모든 기존 토스트 제거
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('경로 시작!')),
         );
       } else {
-        return; // 시작하지 않았으면 진행하지 않음
+        return;
       }
     }
 
@@ -347,7 +338,7 @@ class _MapCombinedState extends State<MapCombined> {
         currentLocation.longitude,
       );
       _totalDistance += distance / 1000;
-      _currentProgress = (_totalDistance / _routeLength).clamp(0.0, 1.0); // Progress as ratio
+      _currentProgress = (_totalDistance / _routeLength).clamp(0.0, 1.0);
     }
     _currentPosition = currentLocation;
 
@@ -381,30 +372,27 @@ class _MapCombinedState extends State<MapCombined> {
     return (distanceToStart + distanceToEnd - segmentLength).abs() < 15.0;
   }
 
-  // **4. 루트 종료/정지**
   void _endRoute() async {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('경로 종료!')),
     );
 
     try {
-      // Firestore의 유저 문서 업데이트: totalDistance 증가 및 badges 배열 업데이트
       DateTime now = DateTime.now();
       String formattedDate = DateFormat('yyyy-MM-dd').format(now);
-      // 100~500 사이의 랜덤 칼로리 생성
-      int randomCalories = Random().nextInt(401) + 100; // 0~400 + 100 = 100~500
+      int randomCalories = Random().nextInt(401) + 100;
 
       await FirebaseFirestore.instance.collection('users').doc(widget.username).update({
-        'totalDistance': FieldValue.increment(_totalDistance), // 총 거리 증가
-        'badges': FieldValue.arrayUnion([_currentRouteName]), // 완료한 루트 추가
+        'totalDistance': FieldValue.increment(_totalDistance),
+        'badges': FieldValue.arrayUnion([_currentRouteName]),
         'history': FieldValue.arrayUnion([
           {
-            'calories': '${randomCalories}칼로리', // 랜덤 칼로리 추가
+            'calories': '${randomCalories}칼로리',
             'date': formattedDate,
-            'distance': '${_totalDistance.toStringAsFixed(2)}km', // 문자열로 변환된 거리
+            'distance': '${_totalDistance.toStringAsFixed(2)}km',
             'routeName': _currentRouteName,
           }
-        ]), // 기록 추가
+        ]),
       });
 
       setState(() {
@@ -442,17 +430,16 @@ class _MapCombinedState extends State<MapCombined> {
               target: _defaultCenter,
               zoom: 11.0,
             ),
-            zoomControlsEnabled: false, // 기본 확대/축소 버튼 비활성화
-            myLocationButtonEnabled: false, // 기본 위치 버튼 비활성화
-            myLocationEnabled:true,
+            zoomControlsEnabled: false,
+            myLocationButtonEnabled: false,
+            myLocationEnabled: true,
             polylines: {
               if (_drawnRoute != null) _drawnRoute!,
-              ..._routeSegments, // Include the route segments for loaded routes
+              ..._routeSegments,
             },
             onLongPress: _addPoint,
             markers: _markers,
           ),
-          // 커스텀 버튼
           Positioned(
             bottom: 130,
             right: 16,
@@ -514,7 +501,7 @@ class _MapCombinedState extends State<MapCombined> {
             ),
           if (!_routeLoaded)
             Positioned(
-              bottom: 25, // 기존보다 약간 더 높은 위치
+              bottom: 25,
               left: 0,
               right: 0,
               child: Row(
@@ -535,7 +522,7 @@ class _MapCombinedState extends State<MapCombined> {
                   ),
                   ElevatedButton(
                     onPressed: !_isDrawing
-                        ? () async{
+                        ? () async {
                       final routesSnapshot =
                       await FirebaseFirestore.instance.collection("routes").get();
                       final routes = routesSnapshot.docs.map((doc) => doc.id).toList();
@@ -549,13 +536,12 @@ class _MapCombinedState extends State<MapCombined> {
                                   child: Text(route),
                                   onPressed: () {
                                     Navigator.of(context).pop();
-                                    _loadRoute(route);
+                                    loadRoute(route);
                                   },
                                 );
                               }).toList(),
                             );
-                          }
-                      );
+                          });
                     }
                         : () async {
                       final TextEditingController nameController =
@@ -584,7 +570,7 @@ class _MapCombinedState extends State<MapCombined> {
                         },
                       );
                     },
-                    child: Text(_isDrawing ?'경로 저장': '경로 가져오기'),
+                    child: Text(_isDrawing ? '경로 저장' : '경로 가져오기'),
                   ),
                 ],
               ),

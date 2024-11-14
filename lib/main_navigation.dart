@@ -9,7 +9,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MainNavigation extends StatefulWidget {
   final String username;
-  const MainNavigation({super.key, required this.username});
+
+  const MainNavigation({Key? key, required this.username}) : super(key: key);
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
@@ -19,7 +20,8 @@ class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
   late final List<Widget> _pages;
 
-  // 뒤로 가기 버튼을 위한 상태
+  final GlobalKey<MapCombinedState> _mapKey = GlobalKey<MapCombinedState>();
+
   DateTime? _lastPressed;
 
   @override
@@ -27,11 +29,19 @@ class _MainNavigationState extends State<MainNavigation> {
     super.initState();
     _pages = [
       HomePage(username: widget.username),
-      Community(), // Added Community page
-      MapCombined(username: widget.username),
+      Community(onRouteSelected: _onRouteSelected),
+      MapCombined(key: _mapKey, username: widget.username),
       RankingPage(username: widget.username),
       ShowBadges(username: widget.username),
     ];
+  }
+
+  Future<void> _onRouteSelected(String routeName) async {
+    setState(() {
+      _selectedIndex = 2; // Navigate to MapCombined
+    });
+    await Future.delayed(const Duration(milliseconds: 300));
+    _mapKey.currentState?.loadRoute(routeName); // Call the exposed method
   }
 
   void _onItemTapped(int index) {
@@ -46,13 +56,13 @@ class _MainNavigationState extends State<MainNavigation> {
       onWillPop: () async {
         if (_selectedIndex != 0) {
           setState(() {
-            _selectedIndex = 0; // 뒤로 가기 시 Home 탭으로 이동
+            _selectedIndex = 0;
           });
-          return false; // 기본 뒤로 가기 동작 방지
+          return false;
         } else {
-          // 현재 탭이 Home일 때
           final now = DateTime.now();
-          if (_lastPressed == null || now.difference(_lastPressed!) > const Duration(seconds: 2)) {
+          if (_lastPressed == null ||
+              now.difference(_lastPressed!) > const Duration(seconds: 2)) {
             _lastPressed = now;
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -60,10 +70,10 @@ class _MainNavigationState extends State<MainNavigation> {
                 duration: Duration(seconds: 2),
               ),
             );
-            return false; // 앱 종료 방지
+            return false;
           }
-          SystemNavigator.pop(); // 앱 종료
-          return true; // 앱 종료 허용
+          SystemNavigator.pop();
+          return true;
         }
       },
       child: Scaffold(
@@ -71,43 +81,23 @@ class _MainNavigationState extends State<MainNavigation> {
         bottomNavigationBar: BottomNavigationBar(
           items: const [
             BottomNavigationBarItem(
-              icon: FaIcon(
-                FontAwesomeIcons.user,
-                size: 23,
-                color: Colors.black,
-              ),
+              icon: FaIcon(FontAwesomeIcons.user, size: 23, color: Colors.black),
               label: '홈',
             ),
             BottomNavigationBarItem(
-              icon: FaIcon(
-                FontAwesomeIcons.users,
-                size: 23,
-                color: Colors.blue,
-              ),
+              icon: FaIcon(FontAwesomeIcons.users, size: 23, color: Colors.blue),
               label: '커뮤니티',
             ),
             BottomNavigationBarItem(
-              icon: FaIcon(
-                FontAwesomeIcons.map,
-                size: 23,
-                color: Colors.green,
-              ),
+              icon: FaIcon(FontAwesomeIcons.map, size: 23, color: Colors.green),
               label: '지도',
             ),
             BottomNavigationBarItem(
-              icon: FaIcon(
-                FontAwesomeIcons.trophy,
-                size: 23,
-                color: Colors.amber,
-              ),
+              icon: FaIcon(FontAwesomeIcons.trophy, size: 23, color: Colors.amber),
               label: '랭킹',
             ),
             BottomNavigationBarItem(
-              icon: FaIcon(
-                FontAwesomeIcons.award,
-                size: 23,
-                color: Colors.deepOrange,
-              ),
+              icon: FaIcon(FontAwesomeIcons.award, size: 23, color: Colors.deepOrange),
               label: '뱃지',
             ),
           ],
