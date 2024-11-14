@@ -356,14 +356,46 @@ class _MapCombinedState extends State<MapCombined> {
               target: _defaultCenter,
               zoom: 11.0,
             ),
-            myLocationEnabled: true,
-            myLocationButtonEnabled: true,
+            zoomControlsEnabled: false, // 기본 확대/축소 버튼 비활성화
+            myLocationButtonEnabled: false, // 기본 위치 버튼 비활성화
             polylines: {
               if (_drawnRoute != null) _drawnRoute!,
               ..._routeSegments, // Include the route segments for loaded routes
             },
             onLongPress: _addPoint,
             markers: _markers,
+          ),
+          // 커스텀 버튼
+          Positioned(
+            bottom: 130,
+            right: 16,
+            child: Column(
+              children: [
+                FloatingActionButton(
+                  mini: true,
+                  backgroundColor: Colors.white,
+                  onPressed: _moveToCurrentLocation,
+                  child: const Icon(Icons.my_location, color: Colors.black),
+                ),
+                FloatingActionButton(
+                  mini: true,
+                  backgroundColor: Colors.white,
+                  onPressed: () {
+                    mapController.animateCamera(CameraUpdate.zoomIn());
+                  },
+                  child: const Icon(Icons.add, color: Colors.black),
+                ),
+                const SizedBox(height: 8),
+                FloatingActionButton(
+                  mini: true,
+                  backgroundColor: Colors.white,
+                  onPressed: () {
+                    mapController.animateCamera(CameraUpdate.zoomOut());
+                  },
+                  child: const Icon(Icons.remove, color: Colors.black),
+                ),
+              ],
+            ),
           ),
           if (_routeLoaded)
             Align(
