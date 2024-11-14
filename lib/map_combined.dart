@@ -21,6 +21,7 @@ class MapCombined extends StatefulWidget {
 class _MapCombinedState extends State<MapCombined> {
   late GoogleMapController mapController;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  String? _currentRouteName; // 선택된 루트 이름 저장
 
   // General States
   bool _isDrawing = false; // Drawing Mode
@@ -197,6 +198,7 @@ class _MapCombinedState extends State<MapCombined> {
       final List<LatLng> routePoints = points.map((e) => LatLng(e['lat'], e['lng'])).toList();
 
       setState(() {
+        _currentRouteName = routeName; // 선택한 루트 이름 저장
         _routePoints = routePoints;
         _routeLoaded = true; // Route loaded
         _createRouteSegments();
@@ -383,19 +385,35 @@ class _MapCombinedState extends State<MapCombined> {
       const SnackBar(content: Text('경로 종료!')),
     );
 
-    await FirebaseFirestore.instance.collection('users').doc(widget.username).update({
-      'totalDistance': FieldValue.increment(_totalDistance),
-    });
+    try {
+      // Firestore의 유저 문서 업데이트: totalDistance 증가 및 badges 배열 업데이트
+      await FirebaseFirestore.instance.collection('users').doc(widget.username).update({
+        'totalDistance': FieldValue.increment(_totalDistance), // 총 거리 증가
+        'badges': FieldValue.arrayUnion([_currentRouteName]), // 완료한 루트 추가
+      });
 
-    setState(() {
-      _routeLoaded = false;
-      _markers.clear();
-      _routeSegments.clear();
-      _routePoints.clear();
-      _totalDistance = 0.0;
-      _currentProgress = 0.0;
-      _visitedSegmentsIndex = -1;
-    });
+      setState(() {
+        _routeLoaded = false;
+        _markers.clear();
+        _routeSegments.clear();
+        _routePoints.clear();
+        _totalDistance = 0.0;
+        _currentProgress = 0.0;
+        _visitedSegmentsIndex = -1;
+      });
+
+      Fluttertoast.showToast(
+        msg: '완주 성공! 루트가 완료 목록에 추가되었습니다.',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: '루트 업데이트 중 문제가 발생했습니다: $e',
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+      );
+    }
   }
 
   @override
