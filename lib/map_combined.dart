@@ -72,6 +72,7 @@ class MapCombinedState extends State<MapCombined> {
     );
   }
 
+  // **1. Draw Route 기능**
   void _addPoint(LatLng point) {
     if (_isDrawing) {
       setState(() {
@@ -184,6 +185,7 @@ class MapCombinedState extends State<MapCombined> {
     });
   }
 
+  // **2. Load Route 기능**
   Future<void> loadRoute(String routeName) async {
     final routeDoc = await FirebaseFirestore.instance.collection("routes").doc(routeName).get();
 
@@ -236,7 +238,7 @@ class MapCombinedState extends State<MapCombined> {
   }
 
   void _createRouteSegments() {
-    _routeSegments.clear();
+    _routeSegments.clear();  // 기존 세그먼트 초기화
 
     for (int i = 0; i < _routePoints.length - 1; i++) {
       List<LatLng> interpolatedPoints = _interpolatePoints(
@@ -298,6 +300,7 @@ class MapCombinedState extends State<MapCombined> {
     return points;
   }
 
+  // **3. 거리 추적 업데이트**
   void _startTimedLocationUpdates() {
     _timer = Timer.periodic(const Duration(milliseconds: 1000), (timer) async {
       Position position = await Geolocator.getCurrentPosition(
@@ -311,6 +314,7 @@ class MapCombinedState extends State<MapCombined> {
   void _updateRouteProgress(LatLng currentLocation) {
     if (_routePoints.isEmpty) return;
 
+    // 시작 지점에 도달 여부 확인
     if (!_started) {
       double distanceToStart = Geolocator.distanceBetween(
         currentLocation.latitude,
@@ -319,8 +323,10 @@ class MapCombinedState extends State<MapCombined> {
         _routePoints.first.longitude,
       );
 
-      if (distanceToStart <= 20.0) {
+      if (distanceToStart <= 10.0) {
         _started = true;
+        _currentPosition = currentLocation; // 시작 시점 설정
+        _totalDistance = 0.0; // 거리 초기화
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('경로 시작!')),
@@ -347,7 +353,7 @@ class MapCombinedState extends State<MapCombined> {
       LatLng start = segment.points.first;
       LatLng end = segment.points.last;
 
-      if (_isOnSegment(currentLocation, start, end)) {
+      if (_isOnSegment(currentLocation, start, end) && _started) {
         setState(() {
           _routeSegments[i] = segment.copyWith(colorParam: Colors.red);
           _visitedSegmentsIndex = i;
@@ -372,6 +378,7 @@ class MapCombinedState extends State<MapCombined> {
     return (distanceToStart + distanceToEnd - segmentLength).abs() < 15.0;
   }
 
+  // **4. 루트 종료/정지**
   void _endRoute() async {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('경로 종료!')),
