@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'dart:math';
 
 class MapCombined extends StatefulWidget {
   final String username;
@@ -389,15 +390,18 @@ class _MapCombinedState extends State<MapCombined> {
     try {
       // Firestore의 유저 문서 업데이트: totalDistance 증가 및 badges 배열 업데이트
       DateTime now = DateTime.now();
-      String formattedDate = DateFormat('yyyy-MM-dd', 'ko').format(now);
+      String formattedDate = DateFormat('yyyy-MM-dd').format(now);
+      // 100~500 사이의 랜덤 칼로리 생성
+      int randomCalories = Random().nextInt(401) + 100; // 0~400 + 100 = 100~500
+
       await FirebaseFirestore.instance.collection('users').doc(widget.username).update({
         'totalDistance': FieldValue.increment(_totalDistance), // 총 거리 증가
         'badges': FieldValue.arrayUnion([_currentRouteName]), // 완료한 루트 추가
         'history': FieldValue.arrayUnion([
           {
-            'calories': '701칼로리',
+            'calories': '${randomCalories}칼로리', // 랜덤 칼로리 추가
             'date': formattedDate,
-            'distance': '${_totalDistance.toStringAsFixed(2)}KM', // 문자열로 변환된 거리
+            'distance': '${_totalDistance.toStringAsFixed(2)}km', // 문자열로 변환된 거리
             'routeName': _currentRouteName,
           }
         ]), // 기록 추가
@@ -414,13 +418,13 @@ class _MapCombinedState extends State<MapCombined> {
       });
 
       Fluttertoast.showToast(
-        msg: '완주 성공! 루트가 완료 목록에 추가되었습니다.',
+        msg: '완주 성공! 경로가 완료 목록에 추가되었습니다.',
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
       );
     } catch (e) {
       Fluttertoast.showToast(
-        msg: '루트 업데이트 중 문제가 발생했습니다: $e',
+        msg: '경로 업데이트 중 문제가 발생했습니다: $e',
         toastLength: Toast.LENGTH_LONG,
         gravity: ToastGravity.BOTTOM,
       );
@@ -527,7 +531,7 @@ class _MapCombinedState extends State<MapCombined> {
                         gravity: ToastGravity.BOTTOM,
                       );
                     },
-                    child: Text(_isDrawing ? '그리기 취소' : '루트 그리기'),
+                    child: Text(_isDrawing ? '그리기 취소' : '경로 그리기'),
                   ),
                   ElevatedButton(
                     onPressed: !_isDrawing
@@ -539,7 +543,7 @@ class _MapCombinedState extends State<MapCombined> {
                           context: context,
                           builder: (context) {
                             return SimpleDialog(
-                              title: const Text("루트 선택하기"),
+                              title: const Text("경로 선택하기"),
                               children: routes.map((route) {
                                 return SimpleDialogOption(
                                   child: Text(route),
@@ -580,7 +584,7 @@ class _MapCombinedState extends State<MapCombined> {
                         },
                       );
                     },
-                    child: Text(_isDrawing ?'루트 저장': '루트 가져오기'),
+                    child: Text(_isDrawing ?'경로 저장': '경로 가져오기'),
                   ),
                 ],
               ),

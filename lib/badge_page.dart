@@ -9,7 +9,7 @@ class BadgePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF3A8D99),
-        title: Text('Badge Detail'),
+        title: Text('소유한 뱃지'),
         automaticallyImplyLeading: true, // Shows the back button
         leading: IconButton(
           icon: Icon(Icons.arrow_back),

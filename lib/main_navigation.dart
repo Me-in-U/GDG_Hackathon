@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:gdg_hackathon/map_combined.dart';
 import 'package:gdg_hackathon/ranking.dart';
 import 'package:gdg_hackathon/show_badges.dart';
-import 'route_list_screen.dart';
 import 'community.dart';
 import 'home_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';

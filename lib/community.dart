@@ -20,11 +20,11 @@ class Community extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: Text(
-          'Community',
+          '경로 커뮤니티',
           style: TextStyle(color: Colors.black),
         ),
         elevation: 0,
-        
+        automaticallyImplyLeading: false, // Remove back button
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('routes').snapshots(),

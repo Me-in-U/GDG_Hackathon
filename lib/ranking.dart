@@ -63,7 +63,7 @@ class _RankingPageState extends State<RankingPage> with SingleTickerProviderStat
       appBar: AppBar(
         backgroundColor: const Color(0xaF3A8D99),
         title: const Text(
-          'Distance Ranking',
+          '거리 랭킹',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         automaticallyImplyLeading: false, // 뒤로 가기 버튼 제거
@@ -162,7 +162,7 @@ class _RankingPageState extends State<RankingPage> with SingleTickerProviderStat
                     ),
                     const SizedBox(height: 10),
                     const Text(
-                      "Top 10 Users",
+                      "Top 10",
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
                     ),
                     const SizedBox(height: 30),
