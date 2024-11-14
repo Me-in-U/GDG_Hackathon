@@ -39,7 +39,12 @@ class MapPageState extends State<MapPage> {
   }
 
   void addRoute(String routeName, List<LatLng> routePoints) {
+    if (routePoints.isEmpty) {
+      return; // 빈 경로는 처리하지 않음
+    }
+
     setState(() {
+      // Polyline 추가
       _polylines.add(
         Polyline(
           polylineId: PolylineId(routeName),
@@ -49,31 +54,38 @@ class MapPageState extends State<MapPage> {
         ),
       );
     });
-    if (routePoints.isNotEmpty) {
-      mapController.animateCamera(
-        CameraUpdate.newLatLngBounds(
-          _getLatLngBounds(routePoints),
-          50.0,
+
+    // 경로의 첫 번째 좌표로 카메라 이동
+    mapController.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: routePoints.first,
+          zoom: 15.0, // 확대 수준 설정
         ),
-      );
-    }
+      ),
+    );
   }
 
+
   LatLngBounds _getLatLngBounds(List<LatLng> points) {
-    double? minLat, maxLat, minLng, maxLng;
+    double minLat = points.first.latitude;
+    double maxLat = points.first.latitude;
+    double minLng = points.first.longitude;
+    double maxLng = points.first.longitude;
 
     for (var point in points) {
-      if (minLat == null || point.latitude < minLat) minLat = point.latitude;
-      if (maxLat == null || point.latitude > maxLat) maxLat = point.latitude;
-      if (minLng == null || point.longitude < minLng) minLng = point.longitude;
-      if (maxLng == null || point.longitude > maxLng) maxLng = point.longitude;
+      if (point.latitude < minLat) minLat = point.latitude;
+      if (point.latitude > maxLat) maxLat = point.latitude;
+      if (point.longitude < minLng) minLng = point.longitude;
+      if (point.longitude > maxLng) maxLng = point.longitude;
     }
 
     return LatLngBounds(
-      southwest: LatLng(minLat!, minLng!),
-      northeast: LatLng(maxLat!, maxLng!),
+      southwest: LatLng(minLat, minLng),
+      northeast: LatLng(maxLat, maxLng),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
