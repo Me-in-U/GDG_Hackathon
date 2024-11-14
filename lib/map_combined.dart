@@ -407,7 +407,6 @@ class _MapCombinedState extends State<MapCombined> {
             ),
             zoomControlsEnabled: false, // 기본 확대/축소 버튼 비활성화
             myLocationButtonEnabled: false, // 기본 위치 버튼 비활성화
-            myLocationEnabled:true,
             polylines: {
               if (_drawnRoute != null) _drawnRoute!,
               ..._routeSegments, // Include the route segments for loaded routes
@@ -503,21 +502,21 @@ class _MapCombinedState extends State<MapCombined> {
                       await FirebaseFirestore.instance.collection("routes").get();
                       final routes = routesSnapshot.docs.map((doc) => doc.id).toList();
                       await showDialog(
-                        context: context,
-                        builder: (context) {
-                          return SimpleDialog(
-                            title: const Text("Select a Route"),
-                            children: routes.map((route) {
-                              return SimpleDialogOption(
-                                child: Text(route),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                  _loadRoute(route);
-                                },
-                              );
-                            }).toList(),
-                          );
-                        }
+                          context: context,
+                          builder: (context) {
+                            return SimpleDialog(
+                              title: const Text("Select a Route"),
+                              children: routes.map((route) {
+                                return SimpleDialogOption(
+                                  child: Text(route),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    _loadRoute(route);
+                                  },
+                                );
+                              }).toList(),
+                            );
+                          }
                       );
                     }
                         : () async {
