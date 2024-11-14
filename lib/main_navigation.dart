@@ -90,7 +90,7 @@ class _MainNavigationState extends State<MainNavigation> {
               icon: FaIcon(
                 FontAwesomeIcons.map,
                 size: 23,
-                color: Colors.black,
+                color: Colors.green,
               ),
               label: '지도',
             ),
@@ -112,7 +112,7 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
           ],
           currentIndex: _selectedIndex,
-          selectedItemColor: Colors.deepPurple,
+          selectedItemColor: Colors.black,
           unselectedItemColor: Colors.black,
           onTap: _onItemTapped,
         ),
