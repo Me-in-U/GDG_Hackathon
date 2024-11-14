@@ -348,10 +348,6 @@ class _MapCombinedState extends State<MapCombined> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Route Manager'),
-        backgroundColor: Colors.deepPurple,
-      ),
       body: Stack(
         children: [
           GoogleMap(
@@ -398,8 +394,10 @@ class _MapCombinedState extends State<MapCombined> {
               ),
             ),
           if (!_routeLoaded)
-            Align(
-              alignment: Alignment.bottomCenter,
+            Positioned(
+              bottom: 25, // 기존보다 약간 더 높은 위치
+              left: 0,
+              right: 0,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
