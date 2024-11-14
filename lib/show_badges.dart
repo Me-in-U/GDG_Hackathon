@@ -19,6 +19,8 @@ class _ShowBadgesState extends State<ShowBadges> with SingleTickerProviderStateM
   final List<_BadgePhysics> _badgePhysics = [];
   late Ticker _ticker;
 
+  bool _isLoading = true; // 추가: 로딩 상태 관리
+
   @override
   void initState() {
     super.initState();
@@ -33,29 +35,35 @@ class _ShowBadgesState extends State<ShowBadges> with SingleTickerProviderStateM
   }
 
   Future<void> _fetchBadges() async {
-    final userDoc =
-    await FirebaseFirestore.instance.collection('users').doc(widget.username).get();
-    final List<dynamic> badgeNames = userDoc['badges'];
+    try {
+      final userDoc =
+      await FirebaseFirestore.instance.collection('users').doc(widget.username).get();
+      final List<dynamic> badgeNames = userDoc['badges'];
 
-    for (String badgeName in badgeNames) {
-      final badgeDoc =
-      await FirebaseFirestore.instance.collection('routes').doc(badgeName).get();
-      if (badgeDoc.exists) {
-        final imageBase64 = badgeDoc['image'] as String?;
-        if (imageBase64 != null) {
-          setState(() {
+      for (String badgeName in badgeNames) {
+        final badgeDoc =
+        await FirebaseFirestore.instance.collection('routes').doc(badgeName).get();
+        if (badgeDoc.exists) {
+          final imageBase64 = badgeDoc['image'] as String?;
+          if (imageBase64 != null) {
             final badge = Badge(
               name: badgeName,
               image: base64Decode(imageBase64),
               color: _generateRandomColor(),
             );
             _badges.add(badge);
-          });
+          }
         }
       }
-    }
 
-    _initializeBadgePhysics();
+      _initializeBadgePhysics();
+    } catch (e) {
+      print('Error fetching badges: $e');
+    } finally {
+      setState(() {
+        _isLoading = false; // 로딩 완료
+      });
+    }
   }
 
   void _initializeBadgePhysics() {
@@ -168,9 +176,13 @@ class _ShowBadgesState extends State<ShowBadges> with SingleTickerProviderStateM
       appBar: AppBar(
         title: const Text('Badges'),
         backgroundColor: Colors.greenAccent,
-        automaticallyImplyLeading: false, // 뒤로 가기 버튼 제거
+        automaticallyImplyLeading: false,
       ),
-      body: Stack(
+      body: _isLoading
+          ? const Center(
+        child: CircularProgressIndicator(), // 로딩 중에 표시할 UI
+      )
+          : Stack(
         children: [
           Positioned.fill(
             child: Container(
