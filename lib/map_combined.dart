@@ -407,6 +407,7 @@ class _MapCombinedState extends State<MapCombined> {
             ),
             zoomControlsEnabled: false, // 기본 확대/축소 버튼 비활성화
             myLocationButtonEnabled: false, // 기본 위치 버튼 비활성화
+            myLocationEnabled:true,
             polylines: {
               if (_drawnRoute != null) _drawnRoute!,
               ..._routeSegments, // Include the route segments for loaded routes
