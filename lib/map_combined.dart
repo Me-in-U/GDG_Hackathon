@@ -1,5 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:gdg_hackathon/routepainter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -16,6 +20,7 @@ class MapCombined extends StatefulWidget {
 
 class _MapCombinedState extends State<MapCombined> {
   late GoogleMapController mapController;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // General States
   bool _isDrawing = false; // Drawing Mode
@@ -107,7 +112,7 @@ class _MapCombinedState extends State<MapCombined> {
   }
 
   Future<void> _saveRoute(String routeName) async {
-    if (_drawnPoints.isEmpty) {
+    if (_routePoints.isEmpty) {
       Fluttertoast.showToast(
         msg: "경로에 추가된 위치가 없습니다.",
         toastLength: Toast.LENGTH_SHORT,
@@ -116,22 +121,66 @@ class _MapCombinedState extends State<MapCombined> {
       return;
     }
 
-    final routeData = _drawnPoints
+    final routeData = _routePoints
         .map((point) => {"lat": point.latitude, "lng": point.longitude})
         .toList();
 
-    await FirebaseFirestore.instance.collection("routes").doc(routeName).set({"points": routeData});
+    final boundary = GlobalKey();  // RepaintBoundary의 key
+
+    // RepaintBoundary를 사용하여 경로를 그린 화면을 캡처
+    final boundaryWidget = RepaintBoundary(
+      key: boundary,
+      child: CustomPaint(
+        size: Size(double.infinity, 400),
+        painter: RoutePainter(routeData),
+      ),
+    );
+
+    // 로딩 중인 아이콘과 함께 표시
+    final loadingWidget = Stack(
+      children: [
+        Center(child: boundaryWidget),  // 캡처할 위젯
+        Center(child: CircularProgressIndicator()),  // 로딩 중 아이콘
+      ],
+    );
+
+    // 화면에 위젯 띄우기 (사이즈 조정 후 로딩 아이콘 추가)
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Container(
+            width: 100,  // 너비 설정
+            height: 100, // 높이 설정
+            child: loadingWidget, // 로딩 화면을 작은 박스 안에 배치
+          ),
+        );
+      },
+    );
+
+    // 일정 시간 뒤 자동으로 닫기
+    await Future.delayed(Duration(milliseconds: 500));
+
+    final RenderRepaintBoundary renderBoundary = boundary.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    final image = await renderBoundary.toImage(pixelRatio: 3.0);
+
+    final byteData = await image.toByteData(format: ImageByteFormat.png);
+    final buffer = byteData!.buffer.asUint8List();
+
+    // 다이얼로그 닫기
+    Navigator.of(context).pop();
+
+    await _firestore.collection("routes").doc(routeName).set({"points": routeData, "image":base64Encode(buffer)});
     Fluttertoast.showToast(
       msg: 'Route "$routeName" saved successfully!',
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
     );
-
     setState(() {
-      _isDrawing = false; // 드로잉 종료
-      _drawnPoints.clear();
-      _drawnRoute = null; // Clear the polyline from the map
-      _markers.clear();
+      _routePoints.clear();
     });
   }
 
