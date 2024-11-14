@@ -57,9 +57,9 @@ class _DetailPageState extends State<DetailPage> {
           .doc(widget.title)
           .get();
 
-      if (routeDoc.exists && routeDoc['image'] != null) {
+      if (routeDoc.exists && routeDoc['mapimage'] != null) {
         setState(() {
-          routeImage = routeDoc['image']; // Load Base64 image data
+          routeImage = routeDoc['mapimage']; // Load Base64 image data
         });
       }
     } catch (e) {
