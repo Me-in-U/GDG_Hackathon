@@ -1,5 +1,11 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/rendering.dart';
+import 'package:gdg_hackathon/routepainter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -62,7 +68,55 @@ class _MapSettingPageState extends State<MapSettingPage> {
         .map((point) => {"lat": point.latitude, "lng": point.longitude})
         .toList();
 
-    await _firestore.collection("routes").doc(routeName).set({"points": routeData});
+    final boundary = GlobalKey();  // RepaintBoundary의 key
+
+    // RepaintBoundary를 사용하여 경로를 그린 화면을 캡처
+    final boundaryWidget = RepaintBoundary(
+      key: boundary,
+      child: CustomPaint(
+        size: Size(double.infinity, 400),
+        painter: RoutePainter(routeData),
+      ),
+    );
+
+    // 로딩 중인 아이콘과 함께 표시
+    final loadingWidget = Stack(
+      children: [
+        Center(child: boundaryWidget),  // 캡처할 위젯
+        Center(child: CircularProgressIndicator()),  // 로딩 중 아이콘
+      ],
+    );
+
+    // 화면에 위젯 띄우기 (사이즈 조정 후 로딩 아이콘 추가)
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Container(
+            width: 100,  // 너비 설정
+            height: 100, // 높이 설정
+            child: loadingWidget, // 로딩 화면을 작은 박스 안에 배치
+          ),
+        );
+      },
+    );
+
+    // 일정 시간 뒤 자동으로 닫기
+    await Future.delayed(Duration(milliseconds: 500));
+
+    final RenderRepaintBoundary renderBoundary = boundary.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    final image = await renderBoundary.toImage(pixelRatio: 3.0);
+
+    final byteData = await image.toByteData(format: ImageByteFormat.png);
+    final buffer = byteData!.buffer.asUint8List();
+
+    // 다이얼로그 닫기
+    Navigator.of(context).pop();
+
+    await _firestore.collection("routes").doc(routeName).set({"points": routeData, "image":base64Encode(buffer)});
     Fluttertoast.showToast(
       msg: 'Route "$routeName" saved successfully!',
       toastLength: Toast.LENGTH_SHORT,
@@ -90,7 +144,6 @@ class _MapSettingPageState extends State<MapSettingPage> {
       );
 
       widget.loadRouteToMap(routeName, routePoints); // MainNavigation에 전달
-      print("Route $routeName loaded with ${routePoints.length} points."); // 디버깅 로그
     } else {
       Fluttertoast.showToast(
         msg: 'Route "$routeName" does not exist.',
