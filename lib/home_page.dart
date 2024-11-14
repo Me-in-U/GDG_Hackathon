@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'badge_page.dart';
 
@@ -207,14 +211,57 @@ class HomePage extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300, // 임시 배경 색상
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Icon(Icons.map, color: Colors.blue), // 임시 아이콘
+            FutureBuilder<String>(
+              // Firestore에서 Base64로 저장된 이미지를 가져오는 함수
+              future: _getBase64StringFromFirestore(),  // 이 함수에서 Base64 문자열을 가져온다
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Center(child: CircularProgressIndicator()),  // 로딩 중에는 로딩 아이콘 표시
+                  );
+                } else if (snapshot.hasError) {
+                  return Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Icon(Icons.error, color: Colors.red),  // 오류 표시
+                  );
+                } else if (snapshot.hasData) {
+                  // Firestore에서 가져온 Base64 문자열을 Uint8List로 변환
+                  Uint8List imageBytes = base64Decode(snapshot.data!);
+
+                  return Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      image: DecorationImage(
+                        image: MemoryImage(imageBytes),  // 메모리에서 이미지를 로드
+                        fit: BoxFit.cover,  // 이미지가 컨테이너를 덮도록 설정
+                      ),
+                    ),
+                  );
+                } else {
+                  return Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Icon(Icons.image, color: Colors.blue),  // 기본 아이콘 표시
+                  );
+                }
+              },
             ),
             SizedBox(width: 16),
             Expanded(
@@ -250,6 +297,18 @@ class HomePage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<String> _getBase64StringFromFirestore() async {
+    // Firestore에서 저장된 데이터 가져오기 (컬렉션 이름과 문서 ID를 정확히 지정)
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance
+        .collection('routes') // 예시로 'images' 컬렉션을 사용
+        .doc('test2') // 문서 ID를 지정
+        .get();
+
+    // Firestore에서 가져온 데이터에서 Base64 문자열 추출
+    String base64String = snapshot['image']; // Firestore 필드 이름 (예: 'imageData')
+    return base64String;
   }
 }
 
