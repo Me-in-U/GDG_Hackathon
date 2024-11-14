@@ -39,7 +39,7 @@ class RouteListScreen extends StatelessWidget {
                     base64Decode(imageBase64),
                     width: 50,
                     height: 50,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
                   )
                       : const Icon(Icons.image, size: 50), // 이미지가 없을 때 대체 아이콘
                   title: Text(routeName),

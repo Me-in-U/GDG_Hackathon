@@ -4,8 +4,8 @@ class GetImage {
   static Future<String> getBase64StringFromFirestore(String name) async {
     // Firestore에서 저장된 데이터 가져오기 (컬렉션 이름과 문서 ID를 정확히 지정)
     DocumentSnapshot snapshot = await FirebaseFirestore.instance
-        .collection(name) // 예시로 'images' 컬렉션을 사용
-        .doc('강변 산책로') // 문서 ID를 지정
+        .collection('routes') // 예시로 'images' 컬렉션을 사용
+        .doc(name) // 문서 ID를 지정
         .get();
 
     // Firestore에서 가져온 데이터에서 Base64 문자열 추출
