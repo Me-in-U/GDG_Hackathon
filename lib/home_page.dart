@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'badge_page.dart';
+
 
 class HomePage extends StatelessWidget {
   final String username;
@@ -29,7 +31,7 @@ class HomePage extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildProfileHeader(),
+            _buildProfileHeader(context),
             _buildRecentActivity(),
             _buildHistory(context),
           ],
@@ -38,49 +40,61 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader() {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      margin: const EdgeInsets.all(16.0), // 상하좌우에 16의 여백 추가
-      decoration: BoxDecoration(
-        color: Colors.white, // 배경색을 하얀색으로 설정
-        borderRadius: BorderRadius.circular(12.0), // 둥근 모서리 설정
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundImage: NetworkImage('https://example.com/user_image.jpg'),
-            radius: 30, // 프로필 사진 크기 조정
-          ),
-          SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Ronnie',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              Text(
-                'Your profile description', // 예시로 간단한 설명 추가
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-              Text(
-                'Your profile description', // 예시로 간단한 설명 추가
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-            ],
-          ),
-        ],
+
+  Widget _buildProfileHeader(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // 클릭 시 BadgePage로 이동
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => BadgePage()),
+        );
+      },
+      child: Container(  // GestureDetector의 child로 Container를 설정
+        padding: const EdgeInsets.all(16.0),
+        margin: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundImage: NetworkImage('https://example.com/user_image.jpg'),
+              radius: 30,
+            ),
+            SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  username,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                Text(
+                  'Your profile description',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+                Text(
+                  'Your profile description',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
+
+
 
 
   Widget _buildRecentActivity() {

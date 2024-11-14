@@ -3,12 +3,10 @@ import 'package:gdg_hackathon/ranking.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'counter_page.dart';
 import 'map_page.dart';
-import 'profile_page.dart';
+import 'community.dart';
 import 'mapsetting.dart';
 import 'home_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
-
 
 class MainNavigation extends StatefulWidget {
   final String username;
@@ -30,6 +28,7 @@ class _MainNavigationState extends State<MainNavigation> {
     super.initState();
     _pages = [
       HomePage(username: widget.username),
+      Community(), // Added Community page
       MapPage(key: _mapPageKey, username: widget.username), // GlobalKey 전달
       RankingPage(),
       MapSettingPage(
@@ -48,7 +47,7 @@ class _MainNavigationState extends State<MainNavigation> {
   void loadRouteToMap(String routeName, List<LatLng> routePoints) {
     // MapPage로 이동
     setState(() {
-      _selectedIndex = 1; // Map 탭으로 전환
+      _selectedIndex = 2; // Map 탭으로 전환
     });
 
     // MapPage가 완전히 렌더링된 후에 addRoute 호출
@@ -76,7 +75,14 @@ class _MainNavigationState extends State<MainNavigation> {
               color: Colors.black, // 원하는 색상으로 설정
             ),
             label: 'Home',
-
+          ),
+          BottomNavigationBarItem(
+            icon: FaIcon(
+              FontAwesomeIcons.users, // Icon for Community
+              size: 23,
+              color: Colors.blue, // Icon color for Community
+            ),
+            label: 'Community', // Label for Community
           ),
           BottomNavigationBarItem(
             icon: FaIcon(
@@ -85,8 +91,8 @@ class _MainNavigationState extends State<MainNavigation> {
               color: Colors.black, // 원하는 색상으로 설정
             ),
             label: 'Map',
-
           ),
+
           BottomNavigationBarItem(
             icon: FaIcon(
               FontAwesomeIcons.trophy,
@@ -95,6 +101,7 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
             label: 'Ranking',
           ),
+
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Map Settings',
@@ -102,7 +109,6 @@ class _MainNavigationState extends State<MainNavigation> {
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.deepPurple,
-
         unselectedItemColor: Colors.black,
         onTap: _onItemTapped,
       ),
