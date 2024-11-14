@@ -30,7 +30,7 @@ class _MainNavigationState extends State<MainNavigation> {
       HomePage(username: widget.username),
       Community(), // Added Community page
       MapCombined(username: widget.username), // GlobalKey 전달
-      RankingPage(),
+      RankingPage(username: widget.username),
       RouteListScreen(),
       ShowBadges(username: widget.username),
     ];
