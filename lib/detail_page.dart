@@ -57,15 +57,20 @@ class _DetailPageState extends State<DetailPage> {
           .doc(widget.title)
           .get();
 
-      if (routeDoc.exists && routeDoc['mapimage'] != null) {
+      if (routeDoc.exists) {
+        final data = routeDoc.data() as Map<String, dynamic>?;
+
         setState(() {
-          routeImage = routeDoc['mapimage']; // Load Base64 image data
+          // Safely check if `mapimage` exists; fallback to `image` if not
+          routeImage = data?['mapimage'] ?? data?['image'];
         });
       }
     } catch (e) {
       print('Error fetching route image: $e');
     }
   }
+
+
 
   // Save the selected route to Firestore
   Future<void> _saveSelectedRoute() async {
