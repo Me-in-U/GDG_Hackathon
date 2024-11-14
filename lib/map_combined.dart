@@ -29,10 +29,12 @@ class _MapCombinedState extends State<MapCombined> {
   // Map and Route States
   final List<Polyline> _routeSegments = []; // 경로 세그먼트
   final List<LatLng> _drawnPoints = []; // 사용자가 그리고 있는 점
+  final Set<Marker> _markers = {}; // Markers for start and end points
   final LatLng _defaultCenter = const LatLng(36.5, 127.5); // 기본 지도 위치
   List<LatLng> _routePoints = []; // 로드된 경로의 점들
   LatLng? _currentPosition;
 
+  Polyline? _drawnRoute; // Current drawn route polyline
   Timer? _timer;
 
   @override
@@ -44,6 +46,7 @@ class _MapCombinedState extends State<MapCombined> {
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     _moveToCurrentLocation();
+    _startTimedLocationUpdates();
   }
 
   Future<void> _moveToCurrentLocation() async {
@@ -63,7 +66,6 @@ class _MapCombinedState extends State<MapCombined> {
 
   // **1. Draw Route 기능**
   // Add a Polyline for the drawn route
-  Polyline? _drawnRoute; // Current drawn route polyline
   void _addPoint(LatLng point) {
     if (_isDrawing) {
       setState(() {
@@ -76,8 +78,32 @@ class _MapCombinedState extends State<MapCombined> {
           color: Colors.red, // Set color for the drawn route
           width: 5, // Set line width
         );
+
+        // Add marker at the start of the route
+        if (_drawnPoints.length == 1) {
+          _markers.add(Marker(
+            markerId: const MarkerId('startMarker'),
+            position: point,
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
+            infoWindow: const InfoWindow(title: '출발'),
+          ));
+        }
       });
     }
+  }
+
+  void _cancelDrawing() {
+    setState(() {
+      _isDrawing = false;
+      _drawnPoints.clear();
+      _drawnRoute = null;
+      _markers.clear();
+    });
+    Fluttertoast.showToast(
+      msg: "그리기가 취소되었습니다.",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+    );
   }
 
   Future<void> _saveRoute(String routeName) async {
@@ -105,6 +131,7 @@ class _MapCombinedState extends State<MapCombined> {
       _isDrawing = false; // 드로잉 종료
       _drawnPoints.clear();
       _drawnRoute = null; // Clear the polyline from the map
+      _markers.clear();
     });
   }
 
@@ -122,6 +149,21 @@ class _MapCombinedState extends State<MapCombined> {
         _createRouteSegments();
         _calculateRouteLength(); // 전체 경로 길이 계산
         _moveToRouteStart();
+        // Add start and end markers
+        _markers
+          ..clear()
+          ..add(Marker(
+            markerId: const MarkerId('startMarker'),
+            position: _routePoints.first,
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
+            infoWindow: const InfoWindow(title: '출발'),
+          ))
+          ..add(Marker(
+            markerId: const MarkerId('endMarker'),
+            position: _routePoints.last,
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+            infoWindow: const InfoWindow(title: '도착'),
+          ));
       });
     } else {
       Fluttertoast.showToast(
@@ -147,7 +189,7 @@ class _MapCombinedState extends State<MapCombined> {
 
 
   void _createRouteSegments() {
-    _routeSegments.clear();
+    _routeSegments.clear(); // 기존 세그먼트 초기화
 
     for (int i = 0; i < _routePoints.length - 1; i++) {
       List<LatLng> interpolatedPoints = _interpolatePoints(
@@ -166,7 +208,7 @@ class _MapCombinedState extends State<MapCombined> {
           ),
         );
       }
-    }
+    }setState(() {}); // 세그먼트 갱신
   }
 
   void _calculateRouteLength() {
@@ -218,7 +260,27 @@ class _MapCombinedState extends State<MapCombined> {
   }
 
   void _updateRouteProgress(LatLng currentLocation) {
-    if (!_routeLoaded || _routePoints.isEmpty) return;
+    if (_routePoints.isEmpty) return;
+
+    // 시작 지점에 도달 여부 확인
+    if (!_started) {
+      double distanceToStart = Geolocator.distanceBetween(
+        currentLocation.latitude,
+        currentLocation.longitude,
+        _routePoints.first.latitude,
+        _routePoints.first.longitude,
+      );
+
+      if (distanceToStart <= 20.0) { // 시작 반경 20m
+        _started = true;
+        ScaffoldMessenger.of(context).clearSnackBars(); // 모든 기존 토스트 제거
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('경로 시작!')),
+        );
+      } else {
+        return; // 시작하지 않았으면 진행하지 않음
+      }
+    }
 
     if (_currentPosition != null) {
       double distance = Geolocator.distanceBetween(
@@ -274,6 +336,7 @@ class _MapCombinedState extends State<MapCombined> {
 
     setState(() {
       _routeLoaded = false;
+      _markers.clear();
       _routeSegments.clear();
       _routePoints.clear();
       _totalDistance = 0.0;
@@ -288,38 +351,6 @@ class _MapCombinedState extends State<MapCombined> {
       appBar: AppBar(
         title: const Text('Route Manager'),
         backgroundColor: Colors.deepPurple,
-        actions: [
-          if (_routeLoaded || _isDrawing)
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed: () async {
-                final TextEditingController nameController = TextEditingController();
-                await showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: const Text("Save Route"),
-                      content: TextField(
-                        controller: nameController,
-                        decoration: const InputDecoration(
-                          labelText: "Route Name",
-                        ),
-                      ),
-                      actions: [
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            _saveRoute(nameController.text.trim());
-                          },
-                          child: const Text("Save"),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
-        ],
       ),
       body: Stack(
         children: [
@@ -336,6 +367,7 @@ class _MapCombinedState extends State<MapCombined> {
               ..._routeSegments, // Include the route segments for loaded routes
             },
             onLongPress: _addPoint,
+            markers: _markers,
           ),
           if (_routeLoaded)
             Align(
@@ -372,15 +404,24 @@ class _MapCombinedState extends State<MapCombined> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton(
-                    onPressed: () => setState(() => _isDrawing = true),
-                    child: const Text('Draw Route'),
+                    onPressed: _isDrawing
+                        ? _cancelDrawing
+                        : () {
+                      setState(() => _isDrawing = true);
+                      Fluttertoast.showToast(
+                        msg: "지도를 길게 눌러 경로를 그려보세요",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                      );
+                    },
+                    child: Text(_isDrawing ? 'Cancel Draw' : 'Draw Route'),
                   ),
                   ElevatedButton(
-                    onPressed: () async {
+                    onPressed: !_isDrawing
+                        ? () async{
                       final routesSnapshot =
                       await FirebaseFirestore.instance.collection("routes").get();
                       final routes = routesSnapshot.docs.map((doc) => doc.id).toList();
-
                       await showDialog(
                         context: context,
                         builder: (context) {
@@ -396,10 +437,37 @@ class _MapCombinedState extends State<MapCombined> {
                               );
                             }).toList(),
                           );
+                        }
+                      );
+                    }
+                        : () async {
+                      final TextEditingController nameController =
+                      TextEditingController();
+                      await showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text("Save Route"),
+                            content: TextField(
+                              controller: nameController,
+                              decoration: const InputDecoration(
+                                labelText: "Route Name",
+                              ),
+                            ),
+                            actions: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  _saveRoute(nameController.text.trim());
+                                },
+                                child: const Text("Save"),
+                              ),
+                            ],
+                          );
                         },
                       );
                     },
-                    child: const Text('Load Route'),
+                    child: Text(_isDrawing ?'Save Route': 'Load Route'),
                   ),
                 ],
               ),
