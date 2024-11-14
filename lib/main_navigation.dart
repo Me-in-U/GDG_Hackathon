@@ -41,20 +41,9 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   void loadRouteToMap(String routeName, List<LatLng> routePoints) {
-    // MapPage로 이동
+    _mapPageKey.currentState?.addRoute(routeName, routePoints); // MapPage의 addRoute 호출
     setState(() {
       _selectedIndex = 1; // Map 탭으로 전환
-    });
-
-    // MapPage가 완전히 렌더링된 후에 addRoute 호출
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_mapPageKey.currentState == null) {
-        return;
-      }
-      if (routePoints.isEmpty) {
-        return;
-      }
-      _mapPageKey.currentState?.addRoute(routeName, routePoints); // MapPage의 addRoute 호출
     });
   }
 

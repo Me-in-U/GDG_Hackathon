@@ -90,7 +90,6 @@ class _MapSettingPageState extends State<MapSettingPage> {
       );
 
       widget.loadRouteToMap(routeName, routePoints); // MainNavigation에 전달
-      print("Route $routeName loaded with ${routePoints.length} points."); // 디버깅 로그
     } else {
       Fluttertoast.showToast(
         msg: 'Route "$routeName" does not exist.',
