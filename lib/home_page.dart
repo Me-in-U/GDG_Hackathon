@@ -10,7 +10,6 @@ class HomePage extends StatelessWidget {
 
   const HomePage({required this.username});
 
-
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF5F5FF),
@@ -18,18 +17,14 @@ class HomePage extends StatelessWidget {
         title: Text(
           '런투게더',
           style: TextStyle(
-            fontFamily: 'YourFontName', // 사용하려는 폰트 이름으로 변경
-            fontWeight: FontWeight.bold, // 굵은 글씨 설정
-            fontSize: 20, // 폰트 크기 설정
+            fontFamily: 'YourFontName', // Use the desired font name
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
           ),
         ),
-        automaticallyImplyLeading: false, // 뒤로 가기 버튼 제거
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {},
-          ),
-        ],
+        automaticallyImplyLeading: false, // Remove back button
+
+
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -43,17 +38,16 @@ class HomePage extends StatelessWidget {
     );
   }
 
-
   Widget _buildProfileHeader(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // 클릭 시 BadgePage로 이동
+        // Navigate to BadgePage on tap
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => BadgePage()),
         );
       },
-      child: Container(  // GestureDetector의 child로 Container를 설정
+      child: Container(
         padding: const EdgeInsets.all(16.0),
         margin: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
@@ -85,10 +79,6 @@ class HomePage extends StatelessWidget {
                   'Your profile description',
                   style: TextStyle(color: Colors.grey, fontSize: 14),
                 ),
-                Text(
-                  'Your profile description',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
-                ),
               ],
             ),
           ],
@@ -97,13 +87,10 @@ class HomePage extends StatelessWidget {
     );
   }
 
-
-
-
   Widget _buildRecentActivity() {
     return Container(
       padding: const EdgeInsets.all(16.0),
-      margin: const EdgeInsets.fromLTRB(16,4,16, 4), // 상하좌우에 16의 여백 추가
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 4),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.0),
@@ -147,7 +134,7 @@ class HomePage extends StatelessWidget {
           ),
           SizedBox(height: 8),
           LinearProgressIndicator(
-            value: 35 / 50, // 현재 거리 / 목표 거리
+            value: 35 / 50,
             backgroundColor: Colors.grey.shade300,
             valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
           ),
@@ -156,15 +143,13 @@ class HomePage extends StatelessWidget {
     );
   }
 
-
-
   Widget _buildHistory(BuildContext context) {
     return Center(
       child: Container(
         padding: const EdgeInsets.all(16.0),
-        margin: const EdgeInsets.all(16.0), // 상하좌우에 16의 여백 추가
+        margin: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: Colors.white, // 연한 배경 색상
+          color: Colors.white,
           borderRadius: BorderRadius.circular(12.0),
         ),
         child: Column(
@@ -197,7 +182,6 @@ class HomePage extends StatelessWidget {
   Widget _buildHistoryItem(String date, String distance, String calories, String speed, BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // 클릭 시 새로운 페이지로 이동
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -211,8 +195,7 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             FutureBuilder<String>(
-              // Firestore에서 Base64로 저장된 이미지를 가져오는 함수
-              future: GetImage.getBase64StringFromFirestore('강변 산책로'),  // 이 함수에서 Base64 문자열을 가져온다
+              future: GetImage.getBase64StringFromFirestore('강변 산책로'),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Container(
@@ -222,7 +205,7 @@ class HomePage extends StatelessWidget {
                       color: Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: Center(child: CircularProgressIndicator()),  // 로딩 중에는 로딩 아이콘 표시
+                    child: Center(child: CircularProgressIndicator()),
                   );
                 } else if (snapshot.hasError) {
                   return Container(
@@ -232,20 +215,18 @@ class HomePage extends StatelessWidget {
                       color: Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: Icon(Icons.error, color: Colors.red),  // 오류 표시
+                    child: Icon(Icons.error, color: Colors.red),
                   );
                 } else if (snapshot.hasData) {
-                  // Firestore에서 가져온 Base64 문자열을 Uint8List로 변환
                   Uint8List imageBytes = base64Decode(snapshot.data!);
-
                   return Container(
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8.0),
                       image: DecorationImage(
-                        image: MemoryImage(imageBytes),  // 메모리에서 이미지를 로드
-                        fit: BoxFit.cover,  // 이미지가 컨테이너를 덮도록 설정
+                        image: MemoryImage(imageBytes),
+                        fit: BoxFit.cover,
                       ),
                     ),
                   );
@@ -257,7 +238,7 @@ class HomePage extends StatelessWidget {
                       color: Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: Icon(Icons.image, color: Colors.blue),  // 기본 아이콘 표시
+                    child: Icon(Icons.image, color: Colors.blue),
                   );
                 }
               },

@@ -6,6 +6,7 @@ import 'detail_page.dart';
 void main() {
   runApp(MaterialApp(
     home: Community(),
+    debugShowCheckedModeBanner: false, // Disable the debug banner
   ));
 }
 
@@ -23,13 +24,7 @@ class Community extends StatelessWidget {
           style: TextStyle(color: Colors.black),
         ),
         elevation: 0,
-        actions: [
-          CircleAvatar(
-            backgroundColor: Colors.grey,
-            radius: 15,
-          ),
-          SizedBox(width: 16),
-        ],
+        
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('routes').snapshots(),
