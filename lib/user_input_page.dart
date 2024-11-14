@@ -35,7 +35,7 @@ class _UserInputPageState extends State<UserInputPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Enter Your Username"),
+        title: const Text("이름을 입력해 주세요"),
       ),
       body: Center(
         child: Padding(
@@ -46,7 +46,7 @@ class _UserInputPageState extends State<UserInputPage> {
               TextField(
                 controller: _controller,
                 decoration: const InputDecoration(
-                  labelText: "Username",
+                  labelText: "이름",
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -58,7 +58,7 @@ class _UserInputPageState extends State<UserInputPage> {
                     _proceedToMainNavigation(username);
                   }
                 },
-                child: const Text("Submit"),
+                child: const Text("로그인"),
               ),
             ],
           ),

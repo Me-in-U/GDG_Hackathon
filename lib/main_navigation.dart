@@ -29,9 +29,8 @@ class _MainNavigationState extends State<MainNavigation> {
     _pages = [
       HomePage(username: widget.username),
       Community(), // Added Community page
-      MapCombined(username: widget.username), // GlobalKey 전달
+      MapCombined(username: widget.username),
       RankingPage(username: widget.username),
-      RouteListScreen(),
       ShowBadges(username: widget.username),
     ];
   }
@@ -78,7 +77,7 @@ class _MainNavigationState extends State<MainNavigation> {
                 size: 23,
                 color: Colors.black,
               ),
-              label: 'Home',
+              label: '홈',
             ),
             BottomNavigationBarItem(
               icon: FaIcon(
@@ -86,7 +85,7 @@ class _MainNavigationState extends State<MainNavigation> {
                 size: 23,
                 color: Colors.blue,
               ),
-              label: 'Community',
+              label: '커뮤니티',
             ),
             BottomNavigationBarItem(
               icon: FaIcon(
@@ -94,7 +93,7 @@ class _MainNavigationState extends State<MainNavigation> {
                 size: 23,
                 color: Colors.black,
               ),
-              label: 'Map',
+              label: '지도',
             ),
             BottomNavigationBarItem(
               icon: FaIcon(
@@ -102,21 +101,13 @@ class _MainNavigationState extends State<MainNavigation> {
                 size: 23,
                 color: Colors.amber,
               ),
-              label: 'Ranking',
+              label: '랭킹',
             ),
             BottomNavigationBarItem(
               icon: FaIcon(
-                FontAwesomeIcons.trophy,
+                FontAwesomeIcons.award,
                 size: 23,
-                color: Colors.amber,
-              ),
-              label: '사진',
-            ),
-            BottomNavigationBarItem(
-              icon: FaIcon(
-                FontAwesomeIcons.trophy,
-                size: 23,
-                color: Colors.amber,
+                color: Colors.deepOrange,
               ),
               label: '뱃지',
             ),

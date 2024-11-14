@@ -8,6 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:intl/intl.dart';
 
 class MapCombined extends StatefulWidget {
   final String username;
@@ -387,9 +388,19 @@ class _MapCombinedState extends State<MapCombined> {
 
     try {
       // Firestore의 유저 문서 업데이트: totalDistance 증가 및 badges 배열 업데이트
+      DateTime now = DateTime.now();
+      String formattedDate = DateFormat('yyyy-MM-dd', 'ko').format(now);
       await FirebaseFirestore.instance.collection('users').doc(widget.username).update({
         'totalDistance': FieldValue.increment(_totalDistance), // 총 거리 증가
         'badges': FieldValue.arrayUnion([_currentRouteName]), // 완료한 루트 추가
+        'history': FieldValue.arrayUnion([
+          {
+            'calories': '701칼로리',
+            'date': formattedDate,
+            'distance': '${_totalDistance.toStringAsFixed(2)}KM', // 문자열로 변환된 거리
+            'routeName': _currentRouteName,
+          }
+        ]), // 기록 추가
       });
 
       setState(() {
@@ -516,7 +527,7 @@ class _MapCombinedState extends State<MapCombined> {
                         gravity: ToastGravity.BOTTOM,
                       );
                     },
-                    child: Text(_isDrawing ? 'Cancel Draw' : 'Draw Route'),
+                    child: Text(_isDrawing ? '그리기 취소' : '루트 그리기'),
                   ),
                   ElevatedButton(
                     onPressed: !_isDrawing
@@ -528,7 +539,7 @@ class _MapCombinedState extends State<MapCombined> {
                           context: context,
                           builder: (context) {
                             return SimpleDialog(
-                              title: const Text("Select a Route"),
+                              title: const Text("루트 선택하기"),
                               children: routes.map((route) {
                                 return SimpleDialogOption(
                                   child: Text(route),
@@ -569,7 +580,7 @@ class _MapCombinedState extends State<MapCombined> {
                         },
                       );
                     },
-                    child: Text(_isDrawing ?'Save Route': 'Load Route'),
+                    child: Text(_isDrawing ?'루트 저장': '루트 가져오기'),
                   ),
                 ],
               ),
