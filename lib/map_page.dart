@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MapPage extends StatefulWidget {
   final String username;
@@ -20,6 +21,7 @@ class MapPageState extends State<MapPage> {
   LatLng? _currentPosition;
   int _visitedSegmentsIndex = -1; // 방문한 세그먼트의 인덱스
   bool _started = false; // 시작 여부
+  double _totalDistance = 0.0; // 총 이동 거리
 
   Timer? _timer;
 
@@ -151,42 +153,30 @@ class MapPageState extends State<MapPage> {
       }
     }
 
-    // 경로 진행
+    // 거리 계산 및 진행 업데이트
+    if (_currentPosition != null) {
+      double distance = Geolocator.distanceBetween(
+        _currentPosition!.latitude,
+        _currentPosition!.longitude,
+        currentLocation.latitude,
+        currentLocation.longitude,
+      );
+      _totalDistance += distance / 1000; // 거리 누적 (km 단위)
+    }
+    _currentPosition = currentLocation;
+
     for (int i = _visitedSegmentsIndex + 1; i < _routeSegments.length; i++) {
       Polyline segment = _routeSegments[i];
       LatLng start = segment.points.first;
       LatLng end = segment.points.last;
 
-      double distanceToStart = Geolocator.distanceBetween(
-        currentLocation.latitude,
-        currentLocation.longitude,
-        start.latitude,
-        start.longitude,
-      );
-
-      // 특정 좌표에서 멀리 벗어날 경우 진행 중지
-      if (20.0 < distanceToStart &&  distanceToStart <= 40.0) {
-        return;
-      }else if(distanceToStart > 40.0){
-        ScaffoldMessenger.of(context).clearSnackBars(); // 모든 기존 토스트 제거
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('다음 지점으로 너무 멀리 벗어났습니다.')),
-        );
-        return;
-      }
-
       if (_isOnSegment(currentLocation, start, end)) {
         setState(() {
-          // 현재 세그먼트를 빨간색으로 변경
           _routeSegments[i] = segment.copyWith(colorParam: Colors.red);
           _visitedSegmentsIndex = i;
 
-          // 모든 경로를 완료했을 경우 Toast 표시
           if (i == _routeSegments.length - 1) {
-            ScaffoldMessenger.of(context).clearSnackBars(); // 모든 기존 토스트 제거
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('경로 끝!')),
-            );
+            _endRoute(); // 마지막 지점 도달 시 종료
           }
         });
         break;
@@ -202,8 +192,24 @@ class MapPageState extends State<MapPage> {
     double segmentLength = Geolocator.distanceBetween(
         start.latitude, start.longitude, end.latitude, end.longitude);
 
-    // 두 점 사이 범위 안에 있는지 확인
     return (distanceToStart + distanceToEnd - segmentLength).abs() < 15.0; // 허용 오차
+  }
+
+  void _endRoute() async {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('경로 종료!')),
+    );
+
+    // Firestore 업데이트
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(widget.username);
+    await userDoc.update({
+      'totalDistance': FieldValue.increment(_totalDistance), // 누적 거리 업데이트
+    });
+
+    _totalDistance = 0.0; // 거리 초기화
+    _started = false;
+    _visitedSegmentsIndex = -1;
   }
 
   @override
@@ -212,6 +218,12 @@ class MapPageState extends State<MapPage> {
       appBar: AppBar(
         title: const Text('Map Page'),
         backgroundColor: Colors.green[700],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.stop),
+            onPressed: _endRoute, // 종료 버튼
+          ),
+        ],
       ),
       body: GoogleMap(
         onMapCreated: _onMapCreated,
@@ -221,7 +233,7 @@ class MapPageState extends State<MapPage> {
         ),
         myLocationEnabled: true,
         myLocationButtonEnabled: true,
-        polylines: Set<Polyline>.of(_routeSegments), // 세그먼트만 표시
+        polylines: Set<Polyline>.of(_routeSegments),
       ),
     );
   }

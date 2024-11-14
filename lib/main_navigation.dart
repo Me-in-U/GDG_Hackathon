@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:gdg_hackathon/map_combined.dart';
 import 'package:gdg_hackathon/ranking.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'counter_page.dart';
-import 'map_page.dart';
 import 'community.dart';
-import 'mapsetting.dart';
 import 'home_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MainNavigation extends StatefulWidget {
   final String username;
-
   const MainNavigation({super.key, required this.username});
 
   @override
@@ -20,7 +16,6 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
-  final GlobalKey<MapPageState> _mapPageKey = GlobalKey(); // GlobalKey 추가
   late final List<Widget> _pages;
 
   @override
@@ -29,36 +24,14 @@ class _MainNavigationState extends State<MainNavigation> {
     _pages = [
       HomePage(username: widget.username),
       Community(), // Added Community page
-      MapPage(key: _mapPageKey, username: widget.username), // GlobalKey 전달
+      MapCombined(username: widget.username), // GlobalKey 전달
       RankingPage(),
-      MapSettingPage(
-        username: widget.username,
-        loadRouteToMap: loadRouteToMap, // MapSettingPage에 함수 전달
-      ),
     ];
   }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-    });
-  }
-
-  void loadRouteToMap(String routeName, List<LatLng> routePoints) {
-    // MapPage로 이동
-    setState(() {
-      _selectedIndex = 2; // Map 탭으로 전환
-    });
-
-    // MapPage가 완전히 렌더링된 후에 addRoute 호출
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_mapPageKey.currentState == null) {
-        return;
-      }
-      if (routePoints.isEmpty) {
-        return;
-      }
-      _mapPageKey.currentState?.addRoute(routeName, routePoints); // MapPage의 addRoute 호출
     });
   }
 
@@ -92,7 +65,6 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
             label: 'Map',
           ),
-
           BottomNavigationBarItem(
             icon: FaIcon(
               FontAwesomeIcons.trophy,
@@ -100,11 +72,6 @@ class _MainNavigationState extends State<MainNavigation> {
               color: Colors.amber, // 원하는 색상으로 설정
             ),
             label: 'Ranking',
-          ),
-
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Map Settings',
           ),
         ],
         currentIndex: _selectedIndex,
