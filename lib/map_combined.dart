@@ -112,7 +112,7 @@ class _MapCombinedState extends State<MapCombined> {
   }
 
   Future<void> _saveRoute(String routeName) async {
-    if (_routePoints.isEmpty) {
+    if (_drawnPoints.isEmpty) {
       Fluttertoast.showToast(
         msg: "경로에 추가된 위치가 없습니다.",
         toastLength: Toast.LENGTH_SHORT,
@@ -121,7 +121,7 @@ class _MapCombinedState extends State<MapCombined> {
       return;
     }
 
-    final routeData = _routePoints
+    final routeData = _drawnPoints
         .map((point) => {"lat": point.latitude, "lng": point.longitude})
         .toList();
 
@@ -180,6 +180,10 @@ class _MapCombinedState extends State<MapCombined> {
       gravity: ToastGravity.BOTTOM,
     );
     setState(() {
+      _isDrawing = false; // 드로잉 종료
+      _drawnPoints.clear();
+      _drawnRoute = null; // Clear the polyline from the map
+      _markers.clear();
       _routePoints.clear();
     });
   }
