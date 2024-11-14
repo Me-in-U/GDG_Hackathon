@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gdg_hackathon/map_combined.dart';
 import 'package:gdg_hackathon/ranking.dart';
+import 'package:gdg_hackathon/show_badges.dart';
 import 'route_list_screen.dart';
 import 'community.dart';
 import 'home_page.dart';
@@ -28,6 +29,7 @@ class _MainNavigationState extends State<MainNavigation> {
       MapCombined(username: widget.username), // GlobalKey 전달
       RankingPage(),
       RouteListScreen(),
+      ShowBadges(username: widget.username),
     ];
   }
 
@@ -82,6 +84,14 @@ class _MainNavigationState extends State<MainNavigation> {
               color: Colors.amber, // 원하는 색상으로 설정
             ),
             label: '사진',
+          ),
+          BottomNavigationBarItem(
+            icon: FaIcon(
+              FontAwesomeIcons.trophy,
+              size: 23, // 원하는 크기로 설정
+              color: Colors.amber, // 원하는 색상으로 설정
+            ),
+            label: '뱃지',
           ),
         ],
         currentIndex: _selectedIndex,
