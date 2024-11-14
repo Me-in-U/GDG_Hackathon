@@ -166,8 +166,9 @@ class _ShowBadgesState extends State<ShowBadges> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Your Badges'),
-        backgroundColor: Colors.deepPurple,
+        title: const Text('Badges'),
+        backgroundColor: Colors.greenAccent,
+        automaticallyImplyLeading: false, // 뒤로 가기 버튼 제거
       ),
       body: Stack(
         children: [

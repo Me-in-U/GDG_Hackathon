@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gdg_hackathon/map_combined.dart';
 import 'package:gdg_hackathon/ranking.dart';
 import 'package:gdg_hackathon/show_badges.dart';
@@ -17,8 +18,10 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
-
   late final List<Widget> _pages;
+
+  // 뒤로 가기 버튼을 위한 상태
+  DateTime? _lastPressed;
 
   @override
   void initState() {
@@ -41,63 +44,88 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: FaIcon(
-              FontAwesomeIcons.user,
-              size: 23, // 원하는 크기로 설정
-              color: Colors.black, // 원하는 색상으로 설정
+    return WillPopScope(
+      onWillPop: () async {
+        if (_selectedIndex != 0) {
+          setState(() {
+            _selectedIndex = 0; // 뒤로 가기 시 Home 탭으로 이동
+          });
+          return false; // 기본 뒤로 가기 동작 방지
+        } else {
+          // 현재 탭이 Home일 때
+          final now = DateTime.now();
+          if (_lastPressed == null || now.difference(_lastPressed!) > const Duration(seconds: 2)) {
+            _lastPressed = now;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('한 번 더 누르면 앱이 종료됩니다.'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+            return false; // 앱 종료 방지
+          }
+          SystemNavigator.pop(); // 앱 종료
+          return true; // 앱 종료 허용
+        }
+      },
+      child: Scaffold(
+        body: _pages[_selectedIndex],
+        bottomNavigationBar: BottomNavigationBar(
+          items: const [
+            BottomNavigationBarItem(
+              icon: FaIcon(
+                FontAwesomeIcons.user,
+                size: 23,
+                color: Colors.black,
+              ),
+              label: 'Home',
             ),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: FaIcon(
-              FontAwesomeIcons.users, // Icon for Community
-              size: 23,
-              color: Colors.blue, // Icon color for Community
+            BottomNavigationBarItem(
+              icon: FaIcon(
+                FontAwesomeIcons.users,
+                size: 23,
+                color: Colors.blue,
+              ),
+              label: 'Community',
             ),
-            label: 'Community', // Label for Community
-          ),
-          BottomNavigationBarItem(
-            icon: FaIcon(
-              FontAwesomeIcons.map,
-              size: 23, // 원하는 크기로 설정
-              color: Colors.black, // 원하는 색상으로 설정
+            BottomNavigationBarItem(
+              icon: FaIcon(
+                FontAwesomeIcons.map,
+                size: 23,
+                color: Colors.black,
+              ),
+              label: 'Map',
             ),
-            label: 'Map',
-          ),
-          BottomNavigationBarItem(
-            icon: FaIcon(
-              FontAwesomeIcons.trophy,
-              size: 23, // 원하는 크기로 설정
-              color: Colors.amber, // 원하는 색상으로 설정
+            BottomNavigationBarItem(
+              icon: FaIcon(
+                FontAwesomeIcons.trophy,
+                size: 23,
+                color: Colors.amber,
+              ),
+              label: 'Ranking',
             ),
-            label: 'Ranking',
-          ),
-          BottomNavigationBarItem(
-            icon: FaIcon(
-              FontAwesomeIcons.trophy,
-              size: 23, // 원하는 크기로 설정
-              color: Colors.amber, // 원하는 색상으로 설정
+            BottomNavigationBarItem(
+              icon: FaIcon(
+                FontAwesomeIcons.trophy,
+                size: 23,
+                color: Colors.amber,
+              ),
+              label: '사진',
             ),
-            label: '사진',
-          ),
-          BottomNavigationBarItem(
-            icon: FaIcon(
-              FontAwesomeIcons.trophy,
-              size: 23, // 원하는 크기로 설정
-              color: Colors.amber, // 원하는 색상으로 설정
+            BottomNavigationBarItem(
+              icon: FaIcon(
+                FontAwesomeIcons.trophy,
+                size: 23,
+                color: Colors.amber,
+              ),
+              label: '뱃지',
             ),
-            label: '뱃지',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.deepPurple,
-        unselectedItemColor: Colors.black,
-        onTap: _onItemTapped,
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: Colors.deepPurple,
+          unselectedItemColor: Colors.black,
+          onTap: _onItemTapped,
+        ),
       ),
     );
   }
