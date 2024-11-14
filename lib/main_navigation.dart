@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gdg_hackathon/ranking.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'counter_page.dart';
 import 'map_page.dart';
@@ -30,7 +31,7 @@ class _MainNavigationState extends State<MainNavigation> {
     _pages = [
       HomePage(username: widget.username),
       MapPage(key: _mapPageKey, username: widget.username), // GlobalKey 전달
-      const ProfilePage(),
+      RankingPage(),
       MapSettingPage(
         username: widget.username,
         loadRouteToMap: loadRouteToMap, // MapSettingPage에 함수 전달

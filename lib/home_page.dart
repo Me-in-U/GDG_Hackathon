@@ -31,7 +31,7 @@ class HomePage extends StatelessWidget {
           children: [
             _buildProfileHeader(),
             _buildRecentActivity(),
-            _buildHistory(),
+            _buildHistory(context),
           ],
         ),
       ),
@@ -141,7 +141,7 @@ class HomePage extends StatelessWidget {
 
 
 
-  Widget _buildHistory() {
+  Widget _buildHistory(BuildContext context) {
     return Center(
       child: Container(
         padding: const EdgeInsets.all(16.0),
@@ -164,11 +164,11 @@ class HomePage extends StatelessWidget {
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
               children: [
-                _buildHistoryItem('26 мая', '10,12 км', '701 ккал', '11,2 км/ч'),
+                _buildHistoryItem('26 мая', '10,12 км', '701 ккал', '11,2 км/ч', context),
                 Divider(),
-                _buildHistoryItem('27 мая', '9,89 км', '669 ккал', '10,8 км/ч'),
+                _buildHistoryItem('27 мая', '9,89 км', '669 ккал', '10,8 км/ч', context),
                 Divider(),
-                _buildHistoryItem('28 мая', '9,12 км', '608 ккал', '10 км/ч'),
+                _buildHistoryItem('28 мая', '9,12 км', '608 ккал', '10 км/ч', context),
               ],
             ),
           ],
@@ -177,52 +177,100 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildHistoryItem(String date, String distance, String calories, String speed) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300, // 임시 배경 색상 (지도의 이미지 대신 사용)
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: Icon(Icons.map, color: Colors.blue), // 임시 아이콘, 지도 이미지 대신
+  Widget _buildHistoryItem(String date, String distance, String calories, String speed, BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        // 클릭 시 새로운 페이지로 이동
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HistoryDetailPage(date: date, distance: distance, calories: calories, speed: speed),
           ),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  date,
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-                Text(
-                  distance,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      calories,
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    Text(
-                      speed,
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ],
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300, // 임시 배경 색상
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Icon(Icons.map, color: Colors.blue), // 임시 아이콘
             ),
-          ),
-          Icon(Icons.chevron_right, color: Colors.grey),
-        ],
+            SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    date,
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  Text(
+                    distance,
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        calories,
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                      Text(
+                        speed,
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HistoryDetailPage extends StatelessWidget {
+  final String date;
+  final String distance;
+  final String calories;
+  final String speed;
+
+  const HistoryDetailPage({
+    Key? key,
+    required this.date,
+    required this.distance,
+    required this.calories,
+    required this.speed,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('History Detail')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Date: $date', style: TextStyle(fontSize: 20)),
+            SizedBox(height: 8),
+            Text('Distance: $distance', style: TextStyle(fontSize: 20)),
+            SizedBox(height: 8),
+            Text('Calories: $calories', style: TextStyle(fontSize: 20)),
+            SizedBox(height: 8),
+            Text('Speed: $speed', style: TextStyle(fontSize: 20)),
+          ],
+        ),
       ),
     );
   }
