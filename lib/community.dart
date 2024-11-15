@@ -98,7 +98,9 @@ class _CommunityState extends State<Community> {
             itemBuilder: (context, index) {
               final route = routes[index];
               final routeName = route.id;
-              final imageBase64 = route['image'] as String?;
+
+              // mapimage가 없으면 image에서 가져오도록 예외 처리
+              final imageBase64 = route['mapimage'] as String? ?? route['image'] as String?;
 
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -111,6 +113,7 @@ class _CommunityState extends State<Community> {
               );
             },
           );
+
         },
       ),
     );
