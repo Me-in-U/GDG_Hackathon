@@ -635,6 +635,82 @@ class MapCombinedState extends State<MapCombined> {
                 ),
               ),
             ),
+          if (!_routeLoaded)
+            Positioned(
+              bottom: 25,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: _isDrawing
+                        ? _cancelDrawing
+                        : () {
+                      setState(() => _isDrawing = true);
+                      Fluttertoast.showToast(
+                        msg: "지도를 길게 눌러 경로를 그려보세요",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                      );
+                    },
+                    child: Text(_isDrawing ? '그리기 취소' : '경로 그리기'),
+                  ),
+                  ElevatedButton(
+                    onPressed: !_isDrawing
+                        ? () async {
+                      final routesSnapshot =
+                      await FirebaseFirestore.instance.collection("routes").get();
+                      final routes = routesSnapshot.docs.map((doc) => doc.id).toList();
+                      await showDialog(
+                          context: context,
+                          builder: (context) {
+                            return SimpleDialog(
+                              title: const Text("경로 선택하기"),
+                              children: routes.map((route) {
+                                return SimpleDialogOption(
+                                  child: Text(route),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    loadRoute(route);
+                                  },
+                                );
+                              }).toList(),
+                            );
+                          });
+                    }
+                        : () async {
+                      final TextEditingController nameController =
+                      TextEditingController();
+                      await showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text("Save Route"),
+                            content: TextField(
+                              controller: nameController,
+                              decoration: const InputDecoration(
+                                labelText: "Route Name",
+                              ),
+                            ),
+                            actions: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  _saveRoute(nameController.text.trim());
+                                },
+                                child: const Text("Save"),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    child: Text(_isDrawing ? '경로 저장' : '경로 가져오기'),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
