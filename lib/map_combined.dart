@@ -185,9 +185,102 @@ class MapCombinedState extends State<MapCombined> {
     });
   }
 
+  Future<void> _saveStopRoute(String routeName) async {
+    // 유효성 검사: 경로가 로드되지 않았거나, 중단할 수 없는 상태인 경우
+    if (_routeSegments.isEmpty || _visitedSegmentsIndex >= _routeSegments.length - 1) {
+      Fluttertoast.showToast(
+        msg: "저장할 중단된 경로가 없습니다.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
+      return;
+    }
+
+    // 남은 경로 계산
+    List<LatLng> remainingPoints = [];
+
+    // 현재 위치를 추가 (만약 현재 위치가 존재하는 경우)
+    if (_currentPosition != null) {
+      remainingPoints.add(_currentPosition!);
+    }
+
+    // 방문하지 않은 segments를 통해 남은 좌표 계산
+    for (int i = _visitedSegmentsIndex + 1; i < _routeSegments.length; i++) {
+      remainingPoints.addAll(_routeSegments[i].points);
+    }
+
+    // 중복 좌표 제거 (필요 시)
+    remainingPoints = _removeDuplicatePoints(remainingPoints);
+
+    // 유효성 검사: 남은 좌표가 없는 경우
+    if (remainingPoints.isEmpty) {
+      Fluttertoast.showToast(
+        msg: "남은 경로가 없습니다.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
+      return;
+    }
+
+    // Firestore에 저장할 데이터 준비
+    final routeData = remainingPoints.map((point) => {
+      "lat": point.latitude,
+      "lng": point.longitude,
+    }).toList();
+
+    try {
+      await _firestore.collection("stoproutes").doc(routeName).set({
+        "points": routeData,
+        "image": "", // 이미지 생성 로직 추가 가능
+        "from": widget.username, // 중단한 사용자 정보
+      });
+
+      Fluttertoast.showToast(
+        msg: '중단된 경로가 저장되었습니다!',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "경로 저장 중 오류가 발생했습니다: $e",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+      );
+      return;
+    }
+
+    // 경로 종료 처리
+    _endRoute();
+  }
+
+  /// 중복된 LatLng 제거 (필요 시)
+  List<LatLng> _removeDuplicatePoints(List<LatLng> points) {
+    final seen = <String>{};
+    return points.where((point) {
+      final key = '${point.latitude},${point.longitude}';
+      if (seen.contains(key)) {
+        return false;
+      } else {
+        seen.add(key);
+        return true;
+      }
+    }).toList();
+  }
+
+
+
+
+
+
   // **2. Load Route 기능**
   Future<void> loadRoute(String routeName) async {
-    final routeDoc = await FirebaseFirestore.instance.collection("routes").doc(routeName).get();
+    // 시도 1: routes 컬렉션에서 검색
+    DocumentSnapshot routeDoc = await FirebaseFirestore.instance.collection("routes").doc(routeName).get();
+
+    if (!routeDoc.exists) {
+      // 시도 2: routes에서 찾지 못했을 경우 stoproutes에서 검색
+      routeDoc = await FirebaseFirestore.instance.collection("stoproutes").doc(routeName).get();
+    }
 
     if (routeDoc.exists) {
       final List<dynamic> points = routeDoc['points'];
@@ -216,13 +309,15 @@ class MapCombinedState extends State<MapCombined> {
           ));
       });
     } else {
+      // routes와 stoproutes 모두에서 경로를 찾지 못했을 경우
       Fluttertoast.showToast(
-        msg: 'Route "$routeName" does not exist.',
+        msg: 'Route "$routeName" does not exist in routes or stoproutes.',
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
       );
     }
   }
+
 
   void _moveToRouteStart() {
     if (_routePoints.isNotEmpty) {
@@ -238,7 +333,7 @@ class MapCombinedState extends State<MapCombined> {
   }
 
   void _createRouteSegments() {
-    _routeSegments.clear();  // 기존 세그먼트 초기화
+    _routeSegments.clear(); // 기존 세그먼트 초기화
 
     for (int i = 0; i < _routePoints.length - 1; i++) {
       List<LatLng> interpolatedPoints = _interpolatePoints(
@@ -499,87 +594,45 @@ class MapCombinedState extends State<MapCombined> {
                       style: const TextStyle(fontSize: 16),
                     ),
                     ElevatedButton(
-                      onPressed: _endRoute,
-                      child: const Text('중단'),
+                      onPressed: () async {
+                        if (_visitedSegmentsIndex != _routeSegments.length - 1) {
+                          final TextEditingController nameController =
+                          TextEditingController();
+                          await showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text("Stop and Save Route"),
+                                content: TextField(
+                                  controller: nameController,
+                                  decoration: const InputDecoration(
+                                    labelText: "Route Name",
+                                  ),
+                                ),
+                                actions: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      _saveStopRoute(nameController.text.trim());
+                                    },
+                                    child: const Text("Save"),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        } else {
+                          _endRoute();
+                        }
+                      },
+                      child: Text(
+                        _visitedSegmentsIndex == _routeSegments.length - 1
+                            ? '완료'
+                            : '중단',
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ),
-          if (!_routeLoaded)
-            Positioned(
-              bottom: 25,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: _isDrawing
-                        ? _cancelDrawing
-                        : () {
-                      setState(() => _isDrawing = true);
-                      Fluttertoast.showToast(
-                        msg: "지도를 길게 눌러 경로를 그려보세요",
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                      );
-                    },
-                    child: Text(_isDrawing ? '그리기 취소' : '경로 그리기'),
-                  ),
-                  ElevatedButton(
-                    onPressed: !_isDrawing
-                        ? () async {
-                      final routesSnapshot =
-                      await FirebaseFirestore.instance.collection("routes").get();
-                      final routes = routesSnapshot.docs.map((doc) => doc.id).toList();
-                      await showDialog(
-                          context: context,
-                          builder: (context) {
-                            return SimpleDialog(
-                              title: const Text("경로 선택하기"),
-                              children: routes.map((route) {
-                                return SimpleDialogOption(
-                                  child: Text(route),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                    loadRoute(route);
-                                  },
-                                );
-                              }).toList(),
-                            );
-                          });
-                    }
-                        : () async {
-                      final TextEditingController nameController =
-                      TextEditingController();
-                      await showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text("Save Route"),
-                            content: TextField(
-                              controller: nameController,
-                              decoration: const InputDecoration(
-                                labelText: "Route Name",
-                              ),
-                            ),
-                            actions: [
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                  _saveRoute(nameController.text.trim());
-                                },
-                                child: const Text("Save"),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    child: Text(_isDrawing ? '경로 저장' : '경로 가져오기'),
-                  ),
-                ],
               ),
             ),
         ],

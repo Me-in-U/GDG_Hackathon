@@ -4,6 +4,7 @@ import 'package:gdg_hackathon/map_combined.dart';
 import 'package:gdg_hackathon/ranking.dart';
 import 'package:gdg_hackathon/show_badges.dart';
 import 'community.dart';
+import 'community_stop.dart';
 import 'home_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -30,6 +31,7 @@ class _MainNavigationState extends State<MainNavigation> {
     _pages = [
       HomePage(username: widget.username),
       Community(onRouteSelected: _onRouteSelected),
+      CommunityStop(onRouteSelected: _onRouteSelected),
       MapCombined(key: _mapKey, username: widget.username),
       RankingPage(username: widget.username),
       ShowBadges(username: widget.username),
@@ -38,7 +40,7 @@ class _MainNavigationState extends State<MainNavigation> {
 
   Future<void> _onRouteSelected(String routeName) async {
     setState(() {
-      _selectedIndex = 2; // Navigate to MapCombined
+      _selectedIndex = 3; // Navigate to MapCombined
     });
     await Future.delayed(const Duration(milliseconds: 300));
     _mapKey.currentState?.loadRoute(routeName); // Call the exposed method
@@ -87,6 +89,10 @@ class _MainNavigationState extends State<MainNavigation> {
             BottomNavigationBarItem(
               icon: FaIcon(FontAwesomeIcons.users, size: 23, color: Colors.blue),
               label: '커뮤니티',
+            ),
+            BottomNavigationBarItem(
+              icon: FaIcon(FontAwesomeIcons.users, size: 23, color: Colors.blue),
+              label: 'Stop 커뮤니티',
             ),
             BottomNavigationBarItem(
               icon: FaIcon(FontAwesomeIcons.map, size: 23, color: Colors.green),
