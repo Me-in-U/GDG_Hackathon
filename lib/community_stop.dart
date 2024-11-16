@@ -15,6 +15,7 @@ class CommunityStop extends StatefulWidget {
 
 class _CommunityStopState extends State<CommunityStop> {
   Position? _userPosition;
+  bool _isLoadingPosition = true;  // 위치 로딩 상태 관리 변수 추가
 
   @override
   void initState() {
@@ -29,9 +30,10 @@ class _CommunityStopState extends State<CommunityStop> {
       );
       setState(() {
         _userPosition = position;
+        _isLoadingPosition = false;  // 위치 정보 로드 완료
       });
     } catch (e) {
-      // Handle location permission or fetching error
+      _isLoadingPosition = false;  // 위치 정보 로드 실패 처리
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('위치를 가져오는 데 실패했습니다.')),
       );
@@ -54,8 +56,8 @@ class _CommunityStopState extends State<CommunityStop> {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('stoproutes').snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+          if (snapshot.connectionState == ConnectionState.waiting || _isLoadingPosition) {
+            return const Center(child: CircularProgressIndicator());  // 위치 로딩 중 로딩 화면 표시
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(child: Text('No routes found.'));

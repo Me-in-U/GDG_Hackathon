@@ -3,8 +3,8 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:gdg_hackathon/service/get_image.dart';
 import 'badge_page.dart';
-import 'package:gdg_hackathon/get_image.dart';
 
 class HomePage extends StatelessWidget {
   final String username;
@@ -65,7 +65,7 @@ class HomePage extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatar(
-              backgroundImage: NetworkImage('https://example.com/user_image.jpg'),
+              backgroundColor: Colors.deepPurple[200], // 연보라색
               radius: 30,
             ),
             SizedBox(width: 16),
@@ -265,7 +265,7 @@ class HomePage extends StatelessWidget {
           children: [
             FutureBuilder<String>(
               // Firestore에서 Base64로 저장된 이미지를 가져오는 함수
-              future: GetImage.getBase64StringFromFirestore(routeName),  // 이 함수에서 Base64 문자열을 가져온다
+              future: GetImage.getRouteImage(routeName),  // 이 함수에서 Base64 문자열을 가져온다
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Container(

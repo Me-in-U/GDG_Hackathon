@@ -228,11 +228,52 @@ class MapCombinedState extends State<MapCombined> {
       "lng": point.longitude,
     }).toList();
 
+    final GlobalKey boundary = GlobalKey();
+
+    final boundaryWidget = RepaintBoundary(
+      key: boundary,
+      child: CustomPaint(
+        size: const Size(double.infinity, 400),
+        painter: RoutePainter(routeData),
+      ),
+    );
+
+    // Show the dialog with loading indicator
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: SizedBox(
+            width: 100,
+            height: 100,
+            child: Stack(
+              children: [
+                Center(child: boundaryWidget),
+                const Center(child: CircularProgressIndicator()),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    // Capture the image
+    await Future.delayed(const Duration(milliseconds: 500)); // Delay to allow UI to render
+    RenderRepaintBoundary renderBoundary = boundary.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    var image = await renderBoundary.toImage(pixelRatio: 3.0);
+    var byteData = await image.toByteData(format: ImageByteFormat.png);
+    var buffer = byteData!.buffer.asUint8List();
+
+    Navigator.of(context).pop(); // Close the dialog
+
     try {
       await _firestore.collection("stoproutes").doc(routeName).set({
         "points": routeData,
-        "image": "", // 이미지 생성 로직 추가 가능
-        "from": widget.username, // 중단한 사용자 정보
+        "image": base64Encode(buffer),  // Store the captured image
+        "from": widget.username,       // Add user information
       });
 
       Fluttertoast.showToast(
@@ -521,6 +562,30 @@ class MapCombinedState extends State<MapCombined> {
     }
   }
 
+  // **4-1. 루트 취소**
+  void _endRouteForce() async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('경로 종료!')),
+    );
+
+    setState(() {
+      _routeLoaded = false;
+      _markers.clear();
+      _routeSegments.clear();
+      _routePoints.clear();
+      _totalDistance = 0.0;
+      _currentProgress = 0.0;
+      _visitedSegmentsIndex = -1;
+    });
+
+    Fluttertoast.showToast(
+      msg: '경로가 취소되었습니다.',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+    );
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -602,11 +667,11 @@ class MapCombinedState extends State<MapCombined> {
                             context: context,
                             builder: (context) {
                               return AlertDialog(
-                                title: const Text("Stop and Save Route"),
+                                title: const Text("중단하고 경로 저장"),
                                 content: TextField(
                                   controller: nameController,
                                   decoration: const InputDecoration(
-                                    labelText: "Route Name",
+                                    labelText: "경로 이름",
                                   ),
                                 ),
                                 actions: [
@@ -615,7 +680,12 @@ class MapCombinedState extends State<MapCombined> {
                                       Navigator.of(context).pop();
                                       _saveStopRoute(nameController.text.trim());
                                     },
-                                    child: const Text("Save"),
+                                    child: const Text("저장"),
+                                  ),
+                                  // "바로 종료" 버튼 추가
+                                  ElevatedButton(
+                                    onPressed: _endRouteForce,
+                                    child: const Text('바로 종료'),
                                   ),
                                 ],
                               );
@@ -686,11 +756,11 @@ class MapCombinedState extends State<MapCombined> {
                         context: context,
                         builder: (context) {
                           return AlertDialog(
-                            title: const Text("Save Route"),
+                            title: const Text("경로 저장하기"),
                             content: TextField(
                               controller: nameController,
                               decoration: const InputDecoration(
-                                labelText: "Route Name",
+                                labelText: "경로 이름",
                               ),
                             ),
                             actions: [
@@ -699,7 +769,7 @@ class MapCombinedState extends State<MapCombined> {
                                   Navigator.of(context).pop();
                                   _saveRoute(nameController.text.trim());
                                 },
-                                child: const Text("Save"),
+                                child: const Text("저장"),
                               ),
                             ],
                           );

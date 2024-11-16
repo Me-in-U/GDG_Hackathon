@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GetImage {
-  static Future<String> getBase64StringFromFirestore(String name) async {
+  static Future<String> getRouteImage(String name) async {
     // Firestore에서 저장된 데이터 가져오기 (컬렉션 이름과 문서 ID를 정확히 지정)
     DocumentSnapshot snapshot = await FirebaseFirestore.instance
         .collection('routes') // 예시로 'images' 컬렉션을 사용

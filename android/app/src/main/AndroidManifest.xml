@@ -30,9 +30,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Test API Key - Not Available for other computers-->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="key"/>
+            android:value="AIzaSyDxK94TprsLVGMO_1mc_H3kQDRPWu7BCZY"/>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
