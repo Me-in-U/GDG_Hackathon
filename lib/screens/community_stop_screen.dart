@@ -1,19 +1,19 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:gdg_hackathon/screens/detail_screen.dart';
 import 'package:geolocator/geolocator.dart'; // For location services
-import 'detail_page.dart';
 
-class Community extends StatefulWidget {
+class CommunityStopScreen extends StatefulWidget {
   final Function(String routeName) onRouteSelected;
 
-  const Community({Key? key, required this.onRouteSelected}) : super(key: key);
+  const CommunityStopScreen({Key? key, required this.onRouteSelected}) : super(key: key);
 
   @override
-  _CommunityState createState() => _CommunityState();
+  _CommunityStopScreenState createState() => _CommunityStopScreenState();
 }
 
-class _CommunityState extends State<Community> {
+class _CommunityStopScreenState extends State<CommunityStopScreen> {
   Position? _userPosition;
   bool _isLoadingPosition = true;  // 위치 로딩 상태 관리 변수 추가
 
@@ -33,12 +33,10 @@ class _CommunityState extends State<Community> {
         _isLoadingPosition = false;  // 위치 정보 로드 완료
       });
     } catch (e) {
-      setState(() {
-        _isLoadingPosition = false;  // 위치 정보 로드 실패 처리
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('위치를 가져오는데 실패했습니다.')),
-        );
-      });
+      _isLoadingPosition = false;  // 위치 정보 로드 실패 처리
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('위치를 가져오는 데 실패했습니다.')),
+      );
     }
   }
 
@@ -56,7 +54,7 @@ class _CommunityState extends State<Community> {
         automaticallyImplyLeading: false,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('routes').snapshots(),
+        stream: FirebaseFirestore.instance.collection('stoproutes').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting || _isLoadingPosition) {
             return const Center(child: CircularProgressIndicator());  // 위치 로딩 중 로딩 화면 표시

@@ -1,16 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class RankingPage extends StatefulWidget {
+class RankingScreen extends StatefulWidget {
   final String username;
 
-  const RankingPage({Key? key, required this.username}) : super(key: key);
+  const RankingScreen({Key? key, required this.username}) : super(key: key);
 
   @override
-  _RankingPageState createState() => _RankingPageState();
+  _RankingScreenState createState() => _RankingScreenState();
 }
 
-class _RankingPageState extends State<RankingPage> with SingleTickerProviderStateMixin {
+class _RankingScreenState extends State<RankingScreen> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   Future<Map<String, dynamic>> fetchRanking() async {

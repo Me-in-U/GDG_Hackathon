@@ -3,13 +3,13 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:gdg_hackathon/service/get_image.dart';
-import 'badge_page.dart';
+import 'package:gdg_hackathon/screens/badge_screen.dart';
+import 'package:gdg_hackathon/utils/get_image.dart';
 
-class HomePage extends StatelessWidget {
+class HomePageScreen extends StatelessWidget {
   final String username;
 
-  const HomePage({required this.username});
+  const HomePageScreen({required this.username});
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,7 +45,7 @@ class HomePage extends StatelessWidget {
         // Navigate to BadgePage on tap
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => BadgePage()),
+          MaterialPageRoute(builder: (context) => BadgeScreen()),
         );
       },
       child: Container(

@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gdg_hackathon/map_combined.dart';
-import 'package:gdg_hackathon/ranking.dart';
-import 'package:gdg_hackathon/show_badges.dart';
-import 'community.dart';
-import 'community_stop.dart';
-import 'home_page.dart';
+import 'package:gdg_hackathon/screens/map_screen.dart';
+import 'package:gdg_hackathon/screens/ranking_screen.dart';
+import 'package:gdg_hackathon/screens/show_badges_screen.dart';
+import 'community_screen.dart';
+import 'community_stop_screen.dart';
+import 'home_page_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-class MainNavigation extends StatefulWidget {
+class MainNavigationScreen extends StatefulWidget {
   final String username;
 
-  const MainNavigation({Key? key, required this.username}) : super(key: key);
+  const MainNavigationScreen({Key? key, required this.username}) : super(key: key);
 
   @override
-  State<MainNavigation> createState() => _MainNavigationState();
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _selectedIndex = 0;
   late final List<Widget> _pages;
 
-  final GlobalKey<MapCombinedState> _mapKey = GlobalKey<MapCombinedState>();
+  final GlobalKey<MapScreenState> _mapKey = GlobalKey<MapScreenState>();
 
   DateTime? _lastPressed;
 
@@ -29,12 +29,12 @@ class _MainNavigationState extends State<MainNavigation> {
   void initState() {
     super.initState();
     _pages = [
-      HomePage(username: widget.username),
-      Community(onRouteSelected: _onRouteSelected),
-      CommunityStop(onRouteSelected: _onRouteSelected),
-      MapCombined(key: _mapKey, username: widget.username),
-      RankingPage(username: widget.username),
-      ShowBadges(username: widget.username),
+      HomePageScreen(username: widget.username),
+      CommunityScreen(onRouteSelected: _onRouteSelected),
+      CommunityStopScreen(onRouteSelected: _onRouteSelected),
+      MapScreen(key: _mapKey, username: widget.username),
+      RankingScreen(username: widget.username),
+      ShowBadgesScreen(username: widget.username),
     ];
   }
 

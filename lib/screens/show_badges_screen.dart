@@ -5,16 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/scheduler.dart';
 
-class ShowBadges extends StatefulWidget {
+class ShowBadgesScreen extends StatefulWidget {
   final String username;
 
-  const ShowBadges({super.key, required this.username});
+  const ShowBadgesScreen({super.key, required this.username});
 
   @override
-  State<ShowBadges> createState() => _ShowBadgesState();
+  State<ShowBadgesScreen> createState() => _ShowBadgesScreenState();
 }
 
-class _ShowBadgesState extends State<ShowBadges> with SingleTickerProviderStateMixin {
+class _ShowBadgesScreenState extends State<ShowBadgesScreen> with SingleTickerProviderStateMixin {
   final List<Badge> _badges = [];
   final List<_BadgePhysics> _badgePhysics = [];
   late Ticker _ticker;
@@ -174,7 +174,7 @@ class _ShowBadgesState extends State<ShowBadges> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Badges'),
+        title: const Text('소유한 뱃지'),
         backgroundColor: Colors.greenAccent,
         automaticallyImplyLeading: false,
       ),

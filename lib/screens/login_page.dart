@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'main_navigation.dart';
+import 'main_navigation_screen.dart';
 
-class UserInputPage extends StatefulWidget {
-  const UserInputPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<UserInputPage> createState() => _UserInputPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _UserInputPageState extends State<UserInputPage> {
+class _LoginPageState extends State<LoginPage> {
   final TextEditingController _controller = TextEditingController();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -26,7 +26,7 @@ class _UserInputPageState extends State<UserInputPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MainNavigation(username: username),
+        builder: (context) => MainNavigationScreen(username: username),
       ),
     );
   }

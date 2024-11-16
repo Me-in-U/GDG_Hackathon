@@ -3,24 +3,24 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:gdg_hackathon/utils/routepainter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
-import 'package:gdg_hackathon/routepainter.dart';
 import 'dart:math';
 
-class MapCombined extends StatefulWidget {
+class MapScreen extends StatefulWidget {
   final String username;
 
-  const MapCombined({super.key, required this.username});
+  const MapScreen({super.key, required this.username});
 
   @override
-  State<MapCombined> createState() => MapCombinedState();
+  State<MapScreen> createState() => MapScreenState();
 }
 
-class MapCombinedState extends State<MapCombined> {
+class MapScreenState extends State<MapScreen> {
   late GoogleMapController mapController;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String? _currentRouteName; // 선택된 루트 이름 저장
