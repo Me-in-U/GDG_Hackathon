@@ -4,7 +4,8 @@
 
 **Collaborators: [Me-in-U](https://github.com/Me-in-U), [Roniebin](https://github.com/Roniebin), [merjunemong](https://github.com/merjunemong)**
 
-![20241115_123030](https://github.com/user-attachments/assets/8faf0462-b4f9-4b6f-ab4f-0abc4d185014)
+![20241115_123030 (1)](https://github.com/user-attachments/assets/a1dbc0c4-6e92-4480-b9c2-74a28ef7b5b3)
+
 ---
 
 # Run Together
